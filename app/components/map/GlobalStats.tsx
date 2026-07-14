@@ -5,6 +5,8 @@ interface GlobalStatsProps {
   poiDataMap: POIDataMap;
 }
 
+// Rendered inline on the right of the top bar. Full three-stat row on sm+, condensed to just
+// the explored percentage on mobile so it never crowds the header.
 export default function GlobalStats({ poiDataMap }: GlobalStatsProps) {
   const totalPois = POIS.length;
   const visitedPois = POIS.filter(
@@ -17,40 +19,42 @@ export default function GlobalStats({ poiDataMap }: GlobalStatsProps) {
     totalPois > 0 ? Math.round((visitedPois / totalPois) * 100) : 0;
 
   const stats = [
-    {
-      label: "POIs Visited",
-      value: visitedPois,
-      total: totalPois,
-      color: "#16A34A",
-    },
-    {
-      label: "Want to Visit",
-      value: wantPois,
-      total: totalPois,
-      color: "#1D4ED8",
-    },
-    {
-      label: "Croatia Explored",
-      value: `${percentVisited}%`,
-      color: "#D97706",
-    },
+    { label: "Visited", value: visitedPois, color: "#16A34A" },
+    { label: "Planned", value: wantPois, color: "#1D4ED8" },
+    { label: "Explored", value: `${percentVisited}%`, color: "#D97706" },
   ];
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-3 shadow-2xl">
-      {stats.map((s, i) => (
-        <React.Fragment key={s.label}>
-          {i > 0 && <div className="w-px h-8 bg-white/10 mx-3" />}
-          <div className="text-center px-1">
-            <div className="text-lg font-bold" style={{ color: s.color }}>
-              {s.value}
+    <>
+      {/* Full stats on larger screens */}
+      <div className="hidden sm:flex items-center">
+        {stats.map((s, i) => (
+          <React.Fragment key={s.label}>
+            {i > 0 && <div className="w-px h-7 bg-white/10 mx-3" />}
+            <div className="text-center px-1">
+              <div
+                className="text-base font-bold leading-none"
+                style={{ color: s.color }}
+              >
+                {s.value}
+              </div>
+              <div className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap mt-1">
+                {s.label}
+              </div>
             </div>
-            <div className="text-[10px] text-white/50 uppercase tracking-wider whitespace-nowrap">
-              {s.label}
-            </div>
-          </div>
-        </React.Fragment>
-      ))}
-    </div>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Condensed on mobile: just the explored percentage */}
+      <div className="sm:hidden text-right leading-none">
+        <div className="text-base font-bold" style={{ color: "#D97706" }}>
+          {percentVisited}%
+        </div>
+        <div className="text-[9px] text-white/50 uppercase tracking-wider mt-0.5">
+          Explored
+        </div>
+      </div>
+    </>
   );
 }

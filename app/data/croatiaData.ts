@@ -85,17 +85,29 @@ export interface PlaceMarker {
   lng: number;
 }
 
-export const TOWNS: PlaceMarker[] = [
-  { name: "Zagreb", lat: 45.815, lng: 15.982 },
-  { name: "Split", lat: 43.508, lng: 16.44 },
-  { name: "Rijeka", lat: 45.327, lng: 14.442 },
-  { name: "Osijek", lat: 45.555, lng: 18.695 },
-];
-
 export const MOUNTAINS: PlaceMarker[] = [
-  { name: "Papuk", lat: 45.517, lng: 17.683 },
-  { name: "Velebit", lat: 44.533, lng: 15.3 },
-  { name: "Dinara", lat: 43.958, lng: 16.388 },
+  { name: "Medvednica (Sljeme)", lat: 45.8994, lng: 15.9472 },
+  { name: "Žumberačka gora", lat: 45.7833, lng: 15.4667 },
+  { name: "Strahinjščica", lat: 46.1833, lng: 15.8667 },
+  { name: "Ivanščica", lat: 46.1833, lng: 16.1167 },
+  { name: "Kalnik", lat: 46.1311, lng: 16.4633 },
+  { name: "Moslavačka gora", lat: 45.6214, lng: 16.7378 },
+  { name: "Bilogora", lat: 45.9083, lng: 16.9917 },
+  { name: "Klek", lat: 45.2581, lng: 15.1436 },
+  { name: "Risnjak", lat: 45.4303, lng: 14.6186 },
+  { name: "Snježnik", lat: 45.4419, lng: 14.5828 },
+  { name: "Učka (Vojak)", lat: 45.2914, lng: 14.2014 },
+  { name: "Sjeverni Velebit (Zavižan)", lat: 44.8142, lng: 14.9753 },
+  { name: "Vaganski vrh (Velebit)", lat: 44.5361, lng: 15.4208 },
+  { name: "Papuk (Kozjak)", lat: 45.5256, lng: 17.6017 },
+  { name: "Psunj (Brezovo Polje)", lat: 45.3986, lng: 17.3017 },
+  { name: "Dilj gora", lat: 45.2833, lng: 18.0167 },
+  // Sinjal (1831 m), Croatia's highest peak: east and slightly north of Knin, on the BiH border.
+  { name: "Dinara (Sinjal)", lat: 44.046, lng: 16.414 },
+  { name: "Biokovo (Sveti Jure)", lat: 43.3414, lng: 17.0506 },
+  { name: "Vidova gora (Brač)", lat: 43.2806, lng: 16.6375 },
+  { name: "Sveti Ilija (Pelješac)", lat: 42.9972, lng: 17.1611 },
+  { name: "Mohokos", lat: 46.4172, lng: 16.3542 },
 ];
 
 export const POIS: POI[] = [
@@ -1051,6 +1063,111 @@ export const POIS: POI[] = [
     type: "campsite",
     description: "Urban camp on Babin Kuk peninsula near Dubrovnik",
   },
+
+  // ── Extra city attractions (attached to cities below) ─────────────
+  {
+    id: "pula-arena",
+    county_id: "istria",
+    name: "Pula Arena",
+    type: "landmark",
+    description: "Best-preserved Roman amphitheatre, still hosts summer concerts",
+  },
+  {
+    id: "pazin-castle",
+    county_id: "istria",
+    name: "Pazin Castle & Abyss",
+    type: "landmark",
+    description: "Istria's largest medieval castle above Jules Verne's cave abyss",
+  },
+  {
+    id: "rovinj-euphemia",
+    county_id: "istria",
+    name: "St. Euphemia Basilica",
+    type: "landmark",
+    description: "Baroque church crowning Rovinj's old town, climbable bell tower",
+  },
+  {
+    id: "zadar-forum",
+    county_id: "zadar",
+    name: "Roman Forum & Sea Organ",
+    type: "landmark",
+    description: "Ancient forum, St. Donatus rotunda and the wave-powered Sea Organ",
+  },
+  {
+    id: "split-marjan",
+    county_id: "split-dalmatia",
+    name: "Marjan Hill",
+    type: "nature",
+    description: "Forested peninsula park above Split with viewpoints and beaches",
+  },
+  {
+    id: "dubrovnik-lovrijenac",
+    county_id: "dubrovnik-neretva",
+    name: "Fort Lovrijenac",
+    type: "landmark",
+    description: "Dramatic clifftop fortress guarding the western walls of Dubrovnik",
+  },
+
+  // ── Kampovi (iz istraživanja; opisi na hrvatskom) ─────────────────
+  { id: "camp-zagreb-rakitje", county_id: "zagreb-county", name: "Camp Zagreb (Rakitje)", type: "campsite", description: "Autokamp na jezeru Rakitje kraj Svete Nedelje, nadomak Zagreba." },
+  { id: "camp-vita-tuhelj", county_id: "krapina-zagorje", name: "Camp Vita Terme Tuhelj", type: "campsite", description: "Kamp uz toplice Terme Tuhelj s pristupom velikom vodenom parku." },
+  { id: "camp-tradicije-cigoc", county_id: "sisak-moslavina", name: "Kamp Tradicije Čigoč", type: "campsite", description: "Mali obiteljski kamp u selu roda Čigoč u srcu Lonjskog polja." },
+  { id: "camp-slapic", county_id: "karlovac", name: "Kamp Slapić (Mrežnica)", type: "campsite", description: "Nagrađivani kamp uz tirkiznu rijeku Mrežnicu u Dugoj Resi." },
+  { id: "camp-korana", county_id: "karlovac", name: "Kamp Korana", type: "campsite", description: "Prostrani kamp uz kanjon bistre Korane blizu Slunja, baza za Plitvice." },
+  { id: "camp-varazdinske-toplice", county_id: "varazdin", name: "Kamp Varaždinske Toplice", type: "campsite", description: "Autokamp u najstarijim hrvatskim toplicama uz ljekovitu termalnu vodu." },
+  { id: "camp-vinia", county_id: "bjelovar-bilogora", name: "Kamp Vinia", type: "campsite", description: "Mali obiteljski kamp uz seosko domaćinstvo i vinariju kraj Bjelovara." },
+  { id: "camp-omisalj", county_id: "primorje-gorski-kotar", name: "Kamp Omišalj", type: "campsite", description: "Kamp na samom ulazu na otok Krk s pješčanom plažom i bazenom." },
+  { id: "camp-krk-premium", county_id: "primorje-gorski-kotar", name: "Krk Premium Camping Resort", type: "campsite", description: "Eko-kamp uz povijesni grad Krk, s wellnessom, bazenima i sportskim terenima." },
+  { id: "camp-jezevac", county_id: "primorje-gorski-kotar", name: "Ježevac Premium Camping Resort", type: "campsite", description: "Kamp uz staru jezgru grada Krka, okružen gustom borovom šumom i plažama." },
+  { id: "camp-baska-beach", county_id: "primorje-gorski-kotar", name: "Baška Beach Camping Resort", type: "campsite", description: "Kamp uz dugu šljunčanu Velu plažu u Baški na otoku Krku." },
+  { id: "camp-slatina-cres", county_id: "primorje-gorski-kotar", name: "Kamp Slatina", type: "campsite", description: "Kamp na otoku Cresu (Martinšćica), prilagođen boravku s kućnim ljubimcima." },
+  { id: "camp-san-marino-rab", county_id: "primorje-gorski-kotar", name: "San Marino Camping Resort", type: "campsite", description: "Kamp na otoku Rabu uz čuvenu pješčanu Rajsku plažu, idealan za obitelji." },
+  { id: "camp-slamni", county_id: "primorje-gorski-kotar", name: "Camping Slamni", type: "campsite", description: "Butik obiteljski kamp u Dobrinju na Krku, uz ljekovito blato uvale Soline." },
+  { id: "camp-cikat", county_id: "primorje-gorski-kotar", name: "Kamp Čikat", type: "campsite", description: "Kamp u borovoj šumi uvale Čikat na Lošinju, s aquaparkom i obiteljskim sadržajem." },
+  { id: "camp-poljana", county_id: "primorje-gorski-kotar", name: "Camping Baia Holiday Poljana", type: "campsite", description: "Kamp na najužem dijelu otoka Lošinja, okružen morem s obiju strana." },
+  { id: "camp-jankovac", county_id: "virovitica-podravina", name: "Planinski kamp Jankovac", type: "campsite", description: "Planinski eko-kamp na Papuku kod izletišta Jankovac, uz slapove i staze." },
+  { id: "camp-duboka", county_id: "pozega-slavonia", name: "Eko-kamp Duboka (Velika)", type: "campsite", description: "Prvi eko-kamp kontinentalne Hrvatske, na južnim padinama Papuka u Velikoj." },
+  { id: "camp-petnja", county_id: "brod-posavina", name: "Kamp Petnja", type: "campsite", description: "Mirni kamp uz slikovito jezero Petnja pod Dilj gorom, omiljen kod ribolovaca." },
+  { id: "camp-plitvice-holiday", county_id: "lika-senj", name: "Plitvice Holiday Resort", type: "campsite", description: "Kamp i resort blizu Plitvica s glampingom u kućicama na drveću i jezeru." },
+  { id: "camp-big-bear-plitvice", county_id: "lika-senj", name: "Big Bear Plitvice Resort", type: "campsite", description: "Ugodan butik kamp u prirodi petnaestak minuta od Plitvičkih jezera." },
+  { id: "camp-suza-baranje", county_id: "osijek-baranja", name: "Kamp Suza Baranje", type: "campsite", description: "Mali gostoljubivi kamp u baranjskom selu Suza, baza za vinske podrume." },
+  { id: "camp-zaton-resort", county_id: "zadar", name: "Zaton Holiday Resort", type: "campsite", description: "Veliki kamp u Ninu (Zaton) s golemim bazenskim kompleksom i pješčanom plažom." },
+  { id: "camp-falkensteiner-zadar", county_id: "zadar", name: "Falkensteiner Premium Camping Zadar", type: "campsite", description: "Luksuzni kamp u Zadru (Borik), otvoren cijele godine, s wellnessom i bazenom." },
+  { id: "camp-avalona", county_id: "zadar", name: "Aminess Avalona Camping Resort", type: "campsite", description: "Luksuzni kamp na otoku Pagu (Povljana) sa smještajem uz privatne bazene." },
+  { id: "camp-ljutic", county_id: "zadar", name: "Campsite Ljutić", type: "campsite", description: "Obiteljski kamp uz more i šljunčanu plažu u Biogradu na Moru." },
+  { id: "camp-stine", county_id: "zadar", name: "Camp Stine", type: "campsite", description: "Manji kamp u Pakoštanima s hladom borova i izravnim pristupom plaži." },
+  { id: "camp-miocic", county_id: "zadar", name: "Camp Miočić", type: "campsite", description: "Mirni obiteljski kamp u Rtini kod Zadra, poznat po domaćoj hrani." },
+  { id: "camp-phalaris", county_id: "zadar", name: "Terra Park Phalaris", type: "campsite", description: "Kamping resort na sjeveru otoka Paga uz kristalno more, s luksuznim parcelama." },
+  { id: "camp-kanic", county_id: "zadar", name: "Camp Kanić", type: "campsite", description: "Mali mirni kamp u uvali Kanić na Pagu, okružen stoljetnim maslinama." },
+  { id: "camp-spiritos", county_id: "zadar", name: "Terra Park SpiritoS", type: "campsite", description: "Prostrani kamp na Pagu uz dugu pješčanu plažu s pogledom na Velebit." },
+  { id: "camp-jezera-lovisca", county_id: "sibenik-knin", name: "Kamp Jezera Lovišća (Murter)", type: "campsite", description: "Kamp u mirnoj uvali na otoku Murteru s plitkim morem i vlastitom marinom." },
+  { id: "camp-dunav-ilok", county_id: "vukovar-srijem", name: "Kamp Dunav (Ilok)", type: "campsite", description: "Mali ugodni kamp na obali Dunava u Iloku, blizu iločkih vinarija." },
+  { id: "camp-stobrec-split", county_id: "split-dalmatia", name: "Kamp Stobreč Split", type: "campsite", description: "Kamp na šumovitom poluotoku kraj Splita s dvije šljunčane plaže i wellnessom." },
+  { id: "camp-galeb-omis", county_id: "split-dalmatia", name: "Kamp Galeb (Omiš)", type: "campsite", description: "Obiteljski kamp na pješčanoj plaži u Omišu, uz ušće rijeke Cetine." },
+  { id: "camp-belvedere-trogir", county_id: "split-dalmatia", name: "Kamp Belvedere (Seget Vranjica)", type: "campsite", description: "Terasasti kamp kod Trogira s pogledom na jadranske otoke i bazenom." },
+  { id: "camp-bunja-brac", county_id: "split-dalmatia", name: "Boutique Camping Bunja (Brač)", type: "campsite", description: "Butik kamp u Supetru na Braču, intiman smještaj pod borovima uz more." },
+  { id: "camp-amadria-trogir", county_id: "split-dalmatia", name: "Camping Amadria Park Trogir", type: "campsite", description: "Kamp u Segetu Vranjici kod Trogira, uz borovu šumu i šljunčanu plažu." },
+  { id: "camp-lanterna", county_id: "istria", name: "Valamar Camping Lanterna", type: "campsite", description: "Jedan od najvećih europskih kampova, kod Poreča, s vodenim parkom i glampingom." },
+  { id: "camp-park-umag", county_id: "istria", name: "Camping Park Umag", type: "campsite", description: "Obiteljski kamp na sjeveru Istre s bazenskim kompleksom i dugom uređenom plažom." },
+  { id: "camp-istra-funtana", county_id: "istria", name: "Istra Premium Camping Resort (Funtana)", type: "campsite", description: "Luksuzni kamp kod Funtane s privatnim bazenima i aquaparkom Aquamar." },
+  { id: "camp-mon-perin", county_id: "istria", name: "Camping Resort Mon Perin (Bale)", type: "campsite", description: "Kamp kod povijesnog mjesta Bale s dugom netaknutom obalom i paleo-parkom." },
+  { id: "camp-san-servolo", county_id: "istria", name: "San Servolo Wellness Camping (Buje)", type: "campsite", description: "Butik wellness kamp u unutrašnjosti Istre kod Buja, s privatnim hidromasažama." },
+  { id: "camp-sirena-novigrad", county_id: "istria", name: "Aminess Planet Camping Sirena", type: "campsite", description: "Uređen kamp u Novigradu uz more, u naručju borove šume." },
+  { id: "camp-maravea", county_id: "istria", name: "Aminess Planet Camping Maravea Resort", type: "campsite", description: "Kamping resort u Novigradu okružen vinogradima i maslinicima." },
+  { id: "camp-kanegra", county_id: "istria", name: "FKK Naturist Campsite Kanegra", type: "campsite", description: "Tradicionalni naturistički kamp u skrivenoj uvali Kanegra kod Umaga." },
+  { id: "camp-savudrija", county_id: "istria", name: "Campsite Savudrija", type: "campsite", description: "Mirni kamp u Savudriji, podno najstarijeg aktivnog svjetionika na Jadranu." },
+  { id: "camp-vestar", county_id: "istria", name: "Campsite Veštar (Rovinj)", type: "campsite", description: "Kamp u mirnoj uvali s pješčanom plažom kod Rovinja, idealan za obitelji." },
+  { id: "camp-santa-marina", county_id: "istria", name: "Boutique Campsite Santa Marina", type: "campsite", description: "Mali luksuzni kamp na poluotoku Lanterna kod Tar-Vabrige, s glampingom." },
+  { id: "camp-valalta", county_id: "istria", name: "Naturist Camping Valalta", type: "campsite", description: "Nagrađivani naturistički kamp na ulazu u Limski zaljev kod Rovinja." },
+  { id: "camp-marina-labin", county_id: "istria", name: "Valamar Camping Marina (Labin)", type: "campsite", description: "Specijalizirani ronilački kamp u Svetoj Marini kod Labina s bogatim podmorjem." },
+  { id: "camp-bijela-uvala", county_id: "istria", name: "Camping Bijela Uvala", type: "campsite", description: "Veliki kamp u Funtani (Zelena laguna) kod Poreča, s više bazena i plažama." },
+  { id: "camp-polidor", county_id: "istria", name: "Polidor Camping Resort", type: "campsite", description: "Obiteljski kamp u Funtani, otvoren cijele godine, s opuštenim ugođajem." },
+  { id: "camp-val-saline", county_id: "istria", name: "Camp Val Saline", type: "campsite", description: "Kamp uz uvalu Saline kod Rovinja, s uređenim parcelama tik uz more." },
+  { id: "camp-banki-green", county_id: "istria", name: "Campsite Banki Green Istrian Village", type: "campsite", description: "Mali kontinentalno-mediteranski wellness kamp u unutrašnjosti Istre." },
+  { id: "camp-nevio-orebic", county_id: "dubrovnik-neretva", name: "Kamp Nevio (Orebić)", type: "campsite", description: "Obiteljski kamp u Orebiću na Pelješcu, na terasama uz pješčanu plažu." },
+  { id: "camp-lupis-loviste", county_id: "dubrovnik-neretva", name: "Kamp Lupis (Lovište)", type: "campsite", description: "Mali ekološki butik kamp u uvali Lovište na zapadnom vrhu Pelješca." },
+  { id: "camp-lavanda-orebic", county_id: "dubrovnik-neretva", name: "Kamp Lavanda (Orebić)", type: "campsite", description: "Kamp kod Orebića s pogledom na Korčulu, među maslinicima i lavandom." },
+  { id: "camp-toplice-svetimartin", county_id: "medimurje", name: "Kamp Toplice Sveti Martin", type: "campsite", description: "Moderni kamp uz Terme Sveti Martin, u zelenom brežuljkastom Međimurju." },
 ];
 
 export const POI_TYPES: Record<
@@ -1109,4 +1226,254 @@ function interpolateColor(hex1: string, hex2: string, t: number): string {
   const g = Math.round(g1 + (g2 - g1) * t);
   const b = Math.round(b1 + (b2 - b1) * t);
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
+// ── Cities ──────────────────────────────────────────────────────────
+// Cities are first-class, clickable entities: drawn as markers on the map (revealed by zoom
+// according to their `importance` tier), listed inside their county's panel, and each opening
+// its own detail panel with a cover image and its own list of places to visit.
+
+/** 1 = major (always visible), 2 = regional, 3 = smaller town (only when zoomed in). */
+export type CityImportance = 1 | 2 | 3;
+
+export interface City {
+  id: string;
+  name: string;
+  county_id: string;
+  lat: number;
+  lng: number;
+  importance: CityImportance;
+  description: string;
+  /** Cover photo; defaults to `/cities/<id>.jpg` (see `cityCover`). */
+  coverImage?: string;
+}
+
+/** Lowest map zoom level at which a city of each importance tier becomes visible. */
+export const CITY_MIN_ZOOM: Record<CityImportance, number> = { 1: 7, 2: 8, 3: 10 };
+
+export const CITIES: City[] = [
+  // Tier 1 — najveći gradovi, uvijek vidljivi na karti
+  { id: "zagreb", name: "Zagreb", county_id: "zagreb-city", lat: 45.815, lng: 15.982, importance: 1, description: "Glavni grad Hrvatske: barokni Gornji grad, živahne kavane, muzeji i tržnica Dolac." },
+  { id: "split", name: "Split", county_id: "split-dalmatia", lat: 43.5081, lng: 16.4403, importance: 1, description: "Živo srce Dalmacije, izraslo u i oko Dioklecijanove rimske palače." },
+  { id: "rijeka", name: "Rijeka", county_id: "primorje-gorski-kotar", lat: 45.3271, lng: 14.4422, importance: 1, description: "Najveća hrvatska luka i Europska prijestolnica kulture 2020. na Kvarneru." },
+  { id: "osijek", name: "Osijek", county_id: "osijek-baranja", lat: 45.555, lng: 18.6955, importance: 1, description: "Zelena slavonska metropola na Dravi, poznata po baroknoj Tvrđi." },
+  { id: "zadar", name: "Zadar", county_id: "zadar", lat: 44.1194, lng: 15.2314, importance: 1, description: "Drevni grad na moru, dom Morskih orgulja i jednog od najljepših zalazaka sunca." },
+  { id: "dubrovnik", name: "Dubrovnik", county_id: "dubrovnik-neretva", lat: 42.6507, lng: 18.0944, importance: 1, description: "'Biser Jadrana': grad-tvrđava od blistavog kamena pod zaštitom UNESCO-a." },
+  { id: "pula", name: "Pula", county_id: "istria", lat: 44.8666, lng: 13.8496, importance: 1, description: "Najveći istarski grad, okružen jednim od najočuvanijih rimskih amfiteatara." },
+
+  // Tier 2 — regionalna središta
+  { id: "sibenik", name: "Šibenik", county_id: "sibenik-knin", lat: 43.735, lng: 15.895, importance: 2, description: "Dalmatinski grad strmih kamenih ulica i UNESCO katedrale sv. Jakova." },
+  { id: "varazdin", name: "Varaždin", county_id: "varazdin", lat: 46.3057, lng: 16.3366, importance: 2, description: "Barokni biser i nekadašnja prijestolnica, s bijelim Starim gradom." },
+  { id: "karlovac", name: "Karlovac", county_id: "karlovac", lat: 45.4929, lng: 15.5553, importance: 2, description: "Grad na četiri rijeke, izgrađen u obliku zvijezde, vrata gorja i mora." },
+  { id: "rovinj", name: "Rovinj", county_id: "istria", lat: 45.0812, lng: 13.6384, importance: 2, description: "Najromantičniji istarski grad; šarene se kuće spuštaju moru pod crkvom sv. Eufemije." },
+  { id: "porec", name: "Poreč", county_id: "istria", lat: 45.2272, lng: 13.5947, importance: 2, description: "Obalni grad rimskog rastera, poznat po zlatnim mozaicima Eufrazijeve bazilike." },
+  { id: "sisak", name: "Sisak", county_id: "sisak-moslavina", lat: 45.4851, lng: 16.3734, importance: 2, description: "Povijesni grad na ušću Kupe u Savu, s trokutastom renesansnom tvrđavom." },
+  { id: "slavonski-brod", name: "Slavonski Brod", county_id: "brod-posavina", lat: 45.1631, lng: 18.0142, importance: 2, description: "Posavski grad koji čuva jednu od najvećih baroknih tvrđava u Europi." },
+  { id: "vukovar", name: "Vukovar", county_id: "vukovar-srijem", lat: 45.3491, lng: 19.0031, importance: 2, description: "Dunavski grad sjećanja i obnove, s baroknom jezgrom koja oživljava." },
+  { id: "cakovec", name: "Čakovec", county_id: "medimurje", lat: 46.3844, lng: 16.4339, importance: 2, description: "Središte Međimurja, oko renesansnog Staroga grada obitelji Zrinski." },
+  { id: "gospic", name: "Gospić", county_id: "lika-senj", lat: 44.5461, lng: 15.3748, importance: 2, description: "Glavni grad ličke visoravni, polazište za Velebit i zavičaj Nikole Tesle." },
+  { id: "knin", name: "Knin", county_id: "sibenik-knin", lat: 44.0333, lng: 16.1961, importance: 2, description: "Grad pod velikom srednjovjekovnom tvrđavom, nekoć sjedište hrvatskih kraljeva." },
+  { id: "bjelovar", name: "Bjelovar", county_id: "bjelovar-bilogora", lat: 45.8988, lng: 16.8424, importance: 2, description: "Planski građen garnizonski grad 18. stoljeća s velikim središnjim trgom." },
+  { id: "koprivnica", name: "Koprivnica", county_id: "koprivnica-krizevci", lat: 46.1628, lng: 16.8314, importance: 2, description: "Podravski grad biciklizma, dom tvrtke Podravka i naivne umjetnosti." },
+  { id: "pozega", name: "Požega", county_id: "pozega-slavonia", lat: 45.3403, lng: 17.6853, importance: 2, description: "Grad 'Zlatne doline' s baroknim crkvama u srcu slavonskih vinograda." },
+  { id: "virovitica", name: "Virovitica", county_id: "virovitica-podravina", lat: 45.8317, lng: 17.3856, importance: 2, description: "Slavonski grad na Dravi, poznat po obnovljenom dvorcu Pejačević." },
+  { id: "krapina", name: "Krapina", county_id: "krapina-zagorje", lat: 46.1608, lng: 15.8789, importance: 2, description: "Zagorski grad uz svjetski poznato nalazište i muzej krapinskih neandertalaca." },
+  { id: "velika-gorica", name: "Velika Gorica", county_id: "zagreb-county", lat: 45.7133, lng: 16.0725, importance: 2, description: "Grad Turopolja južno od Zagreba, uz Zračnu luku Franjo Tuđman." },
+  { id: "dakovo", name: "Đakovo", county_id: "osijek-baranja", lat: 45.3081, lng: 18.4111, importance: 2, description: "Grad veličanstvene katedrale biskupa Strossmayera i uzgoja lipicanaca." },
+
+  // Tier 3 — manji gradovi, vidljivi tek pri približavanju
+  { id: "samobor", name: "Samobor", county_id: "zagreb-county", lat: 45.8021, lng: 15.7118, importance: 3, description: "Ljupki izletnički gradić kraj Zagreba, poznat po kremšnitama." },
+  { id: "jastrebarsko", name: "Jastrebarsko", county_id: "zagreb-county", lat: 45.6714, lng: 15.6517, importance: 3, description: "Jaska u podnožju Plešivice, poznata po pjenušcima i dvorcu Erdödy." },
+  { id: "marija-bistrica", name: "Marija Bistrica", county_id: "krapina-zagorje", lat: 46.0028, lng: 16.1186, importance: 3, description: "Najveće hrvatsko marijansko svetište i hodočasničko središte Zagorja." },
+  { id: "zabok", name: "Zabok", county_id: "krapina-zagorje", lat: 46.0292, lng: 15.9122, importance: 3, description: "Prometno i gospodarsko središte Krapinsko-zagorske županije." },
+  { id: "kutina", name: "Kutina", county_id: "sisak-moslavina", lat: 45.4822, lng: 16.7811, importance: 3, description: "Središte Moslavine uz Park prirode Lonjsko polje." },
+  { id: "ogulin", name: "Ogulin", county_id: "karlovac", lat: 45.2661, lng: 15.2239, importance: 3, description: "Grad bajki pod Klekom, zavičaj Ivane Brlić-Mažuranić." },
+  { id: "slunj", name: "Slunj", county_id: "karlovac", lat: 45.1169, lng: 15.5878, importance: 3, description: "Gradić nad slapovima Slunjčice i slikovitim mlinicama Rastoka." },
+  { id: "ivanec", name: "Ivanec", county_id: "varazdin", lat: 46.2239, lng: 16.1217, importance: 3, description: "Grad u podnožju Ivanščice na sjeverozapadu Hrvatske." },
+  { id: "krizevci", name: "Križevci", county_id: "koprivnica-krizevci", lat: 46.0225, lng: 16.5422, importance: 3, description: "Stari podravski grad barokne arhitekture i tradicije Križevačkog spravišča." },
+  { id: "daruvar", name: "Daruvar", county_id: "bjelovar-bilogora", lat: 45.5922, lng: 17.225, importance: 3, description: "Toplički grad poznat po termama, vinima i češkoj manjini." },
+  { id: "opatija", name: "Opatija", county_id: "primorje-gorski-kotar", lat: 45.3376, lng: 14.3052, importance: 3, description: "Lječilište belle époque s raskošnim vilama i 12 km dugom šetnicom Lungomare." },
+  { id: "krk", name: "Krk", county_id: "primorje-gorski-kotar", lat: 45.0259, lng: 14.5731, importance: 3, description: "Stari grad koji je dao ime najvećem hrvatskom otoku, mostom povezanom s kopnom." },
+  { id: "cres", name: "Cres", county_id: "primorje-gorski-kotar", lat: 44.9612, lng: 14.4079, importance: 3, description: "Stari kvarnerski gradić na otoku bjeloglavih supova i slatkovodnog Vranskog jezera." },
+  { id: "mali-losinj", name: "Mali Lošinj", county_id: "primorje-gorski-kotar", lat: 44.5317, lng: 14.4683, importance: 3, description: "Najveći otočni grad, 'otok vitalnosti' s borovom uvalom Čikat." },
+  { id: "senj", name: "Senj", county_id: "lika-senj", lat: 44.9894, lng: 14.9058, importance: 3, description: "Vjetroviti primorski grad uskoka, pod tvrđavom Nehaj." },
+  { id: "novalja", name: "Novalja", county_id: "lika-senj", lat: 44.5562, lng: 14.8842, importance: 3, description: "Ljetovalište na otoku Pagu, poznato po plaži Zrće i noćnom životu." },
+  { id: "slatina", name: "Slatina", county_id: "virovitica-podravina", lat: 45.7025, lng: 17.7022, importance: 3, description: "Podravski grad parkova i dvoraca na rubu Papuka." },
+  { id: "pakrac", name: "Pakrac", county_id: "pozega-slavonia", lat: 45.4372, lng: 17.1894, importance: 3, description: "Zapadnoslavonski grad koji se obnavlja, između Psunja i Papuka." },
+  { id: "nova-gradiska", name: "Nova Gradiška", county_id: "brod-posavina", lat: 45.2536, lng: 17.3828, importance: 3, description: "Posavski grad u podnožju Psunja, uz Savu i autocestu." },
+  { id: "nasice", name: "Našice", county_id: "osijek-baranja", lat: 45.4922, lng: 18.0908, importance: 3, description: "Slavonski grad oko dvorca Pejačević, na obroncima Krndije." },
+  { id: "vinkovci", name: "Vinkovci", county_id: "vukovar-srijem", lat: 45.2878, lng: 18.8058, importance: 3, description: "Jedan od najstarijih neprekidno naseljenih gradova u Europi, u srcu Slavonije." },
+  { id: "ilok", name: "Ilok", county_id: "vukovar-srijem", lat: 45.2239, lng: 19.3708, importance: 3, description: "Najistočniji hrvatski grad, dunavsko vinsko središte oko dvorca Odescalchi." },
+  { id: "biograd", name: "Biograd na Moru", county_id: "zadar", lat: 43.9376, lng: 15.4419, importance: 3, description: "Nekadašnja hrvatska kraljevska luka, danas ljetovalište i marina." },
+  { id: "nin", name: "Nin", county_id: "zadar", lat: 44.2406, lng: 15.1808, importance: 3, description: "Najstariji hrvatski kraljevski grad na otočiću, okružen plitkim pješčanim plažama." },
+  { id: "pag", name: "Pag", county_id: "zadar", lat: 44.4447, lng: 15.0561, importance: 3, description: "Grad na 'mjesečevom' otoku, poznat po paškom siru, čipki i soli." },
+  { id: "vodice", name: "Vodice", county_id: "sibenik-knin", lat: 43.7547, lng: 15.7794, importance: 3, description: "Popularno šibensko ljetovalište živahne rive i noćnog života." },
+  { id: "skradin", name: "Skradin", county_id: "sibenik-knin", lat: 43.8172, lng: 15.9228, importance: 3, description: "Ljupki gradić na rijeci Krki i polazište za njezine slapove." },
+  { id: "trogir", name: "Trogir", county_id: "split-dalmatia", lat: 43.5164, lng: 16.2502, importance: 3, description: "UNESCO otok-grad uskih kamenih uličica s vrhunskim portalom katedrale." },
+  { id: "makarska", name: "Makarska", county_id: "split-dalmatia", lat: 43.2936, lng: 17.0197, importance: 3, description: "Živahno ljetovalište u uvali s palmama pod moćnim Biokovom." },
+  { id: "omis", name: "Omiš", county_id: "split-dalmatia", lat: 43.4442, lng: 16.6886, importance: 3, description: "Nekadašnje gusarsko uporište gdje kanjon Cetine izbija na more." },
+  { id: "hvar", name: "Hvar", county_id: "split-dalmatia", lat: 43.1729, lng: 16.4428, importance: 3, description: "Glamurozni otočni grad s najvećim trgom u Dalmaciji i tvrđavom Fortica." },
+  { id: "metkovic", name: "Metković", county_id: "dubrovnik-neretva", lat: 43.0542, lng: 17.6483, importance: 3, description: "Grad u delti Neretve, poznat po mandarinama i ornitološkom rezervatu." },
+  { id: "korcula", name: "Korčula", county_id: "dubrovnik-neretva", lat: 42.9614, lng: 17.1356, importance: 3, description: "Utvrđeni grad na otoku Korčuli, po legendi rodno mjesto Marka Pola." },
+  { id: "ston", name: "Ston", county_id: "dubrovnik-neretva", lat: 42.8394, lng: 17.6961, importance: 3, description: "Vrata Pelješca, poznata po najduljim zidinama Europe, solani i kamenicama." },
+  { id: "umag", name: "Umag", county_id: "istria", lat: 45.4375, lng: 13.5244, importance: 3, description: "Najzapadniji hrvatski grad, istarsko središte tenisa i maslinova ulja." },
+  { id: "motovun", name: "Motovun", county_id: "istria", lat: 45.3367, lng: 13.8281, importance: 3, description: "Utvrđeni gradić na brdu iznad doline Mirne, poznat po tartufima i festivalu." },
+  { id: "pazin", name: "Pazin", county_id: "istria", lat: 45.2403, lng: 13.9389, importance: 3, description: "Središte istarske unutrašnjosti, nad ponorom koji je nadahnuo Julesa Vernea." },
+  { id: "prelog", name: "Prelog", county_id: "medimurje", lat: 46.3422, lng: 16.6139, importance: 3, description: "Drugi grad Međimurja, uz rijeku Dravu i njezina jezera." },
+];
+
+/**
+ * Which city each POI belongs to (its "places to visit"). POIs left out here stay county-level
+ * (nature, national parks, islands, campsites…) and show directly in the county panel.
+ * Kept as a separate map so the POIS array above stays untouched.
+ */
+const POI_CITY_ID: Record<string, string> = {
+  // Zagreb
+  "zagreb-city-center": "zagreb",
+  "zagreb-jarun": "zagreb",
+  "zagreb-maksimir": "zagreb",
+  "zagreb-bundek": "zagreb",
+  "zagreb-lotrscak": "zagreb",
+  // Samobor
+  "samobor-town": "samobor",
+  // Krapina
+  "krapina-neanderthal": "krapina",
+  // Varaždin
+  "varazdin-old-town": "varazdin",
+  "varazdin-castle": "varazdin",
+  "varazdin-cemetery": "varazdin",
+  // Koprivnica
+  "koprivnica-city": "koprivnica",
+  // Bjelovar
+  "bjelovar-city": "bjelovar",
+  // Sisak
+  "sisak-fortress": "sisak",
+  // Karlovac
+  "karlovac-city": "karlovac",
+  // Rijeka / Opatija / Krk
+  "rijeka-city": "rijeka",
+  "opatija-riviera": "opatija",
+  "krk-island": "krk",
+  // Gospić
+  "gospic-city": "gospic",
+  // Virovitica
+  "virovitica-city": "virovitica",
+  // Požega
+  "pozega-city": "pozega",
+  // Slavonski Brod
+  "slavonski-brod-city": "slavonski-brod",
+  "brod-fortress": "slavonski-brod",
+  // Zadar / Nin
+  "zadar-old-town": "zadar",
+  "zadar-forum": "zadar",
+  "nin-city": "nin",
+  // Osijek
+  "osijek-city": "osijek",
+  "osijek-tvrdja": "osijek",
+  // Šibenik / Knin / Skradin
+  "sibenik-city": "sibenik",
+  "knin-fortress": "knin",
+  "skradin-town": "skradin",
+  // Vukovar / Vinkovci / Ilok
+  "vukovar-city": "vukovar",
+  "vukovar-water-tower": "vukovar",
+  "vinkovci-city": "vinkovci",
+  "ilok-city": "ilok",
+  // Split / Trogir / Makarska / Omiš / Hvar
+  "split-city": "split",
+  "diocletian-palace": "split",
+  "klis-fortress": "split",
+  "split-marjan": "split",
+  "trogir-old-town": "trogir",
+  "makarska-riviera": "makarska",
+  "omis-city": "omis",
+  "cetina-river": "omis",
+  "hvar-island": "hvar",
+  // Pula / Rovinj / Poreč / Motovun / Pazin
+  "pula-city": "pula",
+  "pula-arena": "pula",
+  "rovinj-city": "rovinj",
+  "rovinj-euphemia": "rovinj",
+  "porec-city": "porec",
+  "motovun-hill-town": "motovun",
+  "pazin-castle": "pazin",
+  // Čakovec
+  "cakovec-medimurje": "cakovec",
+  // Dubrovnik / Korčula / Ston
+  "dubrovnik-city": "dubrovnik",
+  "dubrovnik-walls": "dubrovnik",
+  "dubrovnik-lovrijenac": "dubrovnik",
+  "korcula-island": "korcula",
+  "ston-walls": "ston",
+  // Existing POIs that map onto the newly added towns (avoids double-listing)
+  "velika-gorica": "velika-gorica",
+  "ogulin-city": "ogulin",
+  "kutina-city": "kutina",
+  "senj-nehaj": "senj",
+  "daruvar-spa": "daruvar",
+  "krizevci-city": "krizevci",
+  // Campsites attached to a city
+  "camp-korana": "slunj",
+  "camp-vinia": "bjelovar",
+  "camp-krk-premium": "krk",
+  "camp-jezevac": "krk",
+  "camp-cikat": "mali-losinj",
+  "camp-slatina-cres": "cres",
+  "camp-poljana": "mali-losinj",
+  "camp-zaton-resort": "nin",
+  "camp-falkensteiner-zadar": "zadar",
+  "camp-avalona": "pag",
+  "camp-ljutic": "biograd",
+  "camp-phalaris": "pag",
+  "camp-kanic": "pag",
+  "camp-spiritos": "pag",
+  "camp-dunav-ilok": "ilok",
+  "camp-stobrec-split": "split",
+  "camp-galeb-omis": "omis",
+  "camp-belvedere-trogir": "trogir",
+  "camp-amadria-trogir": "trogir",
+  "camp-lanterna": "porec",
+  "camp-park-umag": "umag",
+  "camp-kanegra": "umag",
+  "camp-savudrija": "umag",
+  "camp-vestar": "rovinj",
+  "camp-valalta": "rovinj",
+  "camp-bijela-uvala": "porec",
+  "camp-val-saline": "rovinj",
+};
+
+const cityById = Object.fromEntries(CITIES.map((c) => [c.id, c]));
+
+export function getCity(cityId: string): City | undefined {
+  return cityById[cityId];
+}
+
+/** Cover image path for a city, falling back to the `/cities/<id>.jpg` convention. */
+export function cityCover(city: City): string {
+  return city.coverImage ?? `/cities/${city.id}.jpg`;
+}
+
+/** Cities inside a county, ordered by importance (major first). */
+export function citiesForCounty(countyId: string): City[] {
+  return CITIES.filter((c) => c.county_id === countyId).sort(
+    (a, b) => a.importance - b.importance,
+  );
+}
+
+/** The POIs that make up a city's "places to visit" list. */
+export function poisForCity(cityId: string): POI[] {
+  return POIS.filter((p) => POI_CITY_ID[p.id] === cityId);
+}
+
+/** County POIs that are NOT tied to a city (shown directly in the county panel). */
+export function looseCountyPois(countyId: string): POI[] {
+  return POIS.filter((p) => p.county_id === countyId && !POI_CITY_ID[p.id]);
+}
+
+/** A city's own explored percentage, from the status of its places to visit. */
+export function getCityPercent(cityId: string, poiDataMap: POIDataMap): number {
+  const pois = poisForCity(cityId);
+  if (pois.length === 0) return 0;
+  const visited = pois.filter((p) => poiDataMap[p.id]?.status === "visited").length;
+  return Math.round((visited / pois.length) * 100);
 }

@@ -1,11 +1,14 @@
 "use client";
 
-// Simple static indicators: major towns as dots, notable mountains as triangles, each with an
-// always-on label. They're non-interactive so they never steal hover/click from the shapes.
+// City markers + mountain indicators. Cities are clickable (they open a city panel) and are
+// revealed progressively by zoom: only the major cities show when zoomed out, smaller towns
+// appear as you zoom in (see CITY_MIN_ZOOM / each city's `importance`). Mountains stay simple,
+// non-interactive triangles and only appear once you've zoomed in a little.
 
-import { CircleMarker, Marker, Tooltip } from "react-leaflet";
+import { useState } from "react";
+import { CircleMarker, Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import { TOWNS, MOUNTAINS } from "@/data/croatiaData";
+import { CITIES, CITY_MIN_ZOOM, MOUNTAINS } from "@/data/croatiaData";
 
 const mountainIcon = L.divIcon({
   html: '<span class="cx-tri"></span>',
@@ -14,35 +17,58 @@ const mountainIcon = L.divIcon({
   iconAnchor: [7, 11],
 });
 
-export default function PlaceMarkers() {
+const MOUNTAIN_MIN_ZOOM = 8;
+
+interface PlaceMarkersProps {
+  onCityClick: (cityId: string) => void;
+  selectedCity: string | null;
+}
+
+export default function PlaceMarkers({ onCityClick, selectedCity }: PlaceMarkersProps) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(() => map.getZoom());
+  useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
+
+  const visibleCities = CITIES.filter((c) => zoom >= CITY_MIN_ZOOM[c.importance]);
+
   return (
     <>
-      {TOWNS.map((t) => (
-        <CircleMarker
-          key={t.name}
-          center={[t.lat, t.lng]}
-          radius={4}
-          pathOptions={{
-            color: "#0b1220",
-            weight: 2,
-            fillColor: "#ffffff",
-            fillOpacity: 1,
-            interactive: false,
-          }}
-        >
-          <Tooltip permanent direction="right" offset={[6, 0]} className="cx-place-label">
-            {t.name}
-          </Tooltip>
-        </CircleMarker>
-      ))}
+      {visibleCities.map((c) => {
+        const isSelected = selectedCity === c.id;
+        const baseRadius = c.importance === 1 ? 5.5 : c.importance === 2 ? 4.5 : 3.5;
+        return (
+          <CircleMarker
+            key={c.id}
+            center={[c.lat, c.lng]}
+            radius={isSelected ? baseRadius + 2 : baseRadius}
+            pathOptions={{
+              color: isSelected ? "#38BDF8" : "#0b1220",
+              weight: 2,
+              fillColor: isSelected ? "#38BDF8" : "#ffffff",
+              fillOpacity: 1,
+            }}
+            eventHandlers={{
+              // react-leaflet v5 doesn't forward pathOptions.className to CircleMarker paths,
+              // so tag the SVG element on add to enable the hover/cursor styles in globals.css.
+              add: (e) => (e.target as L.CircleMarker).getElement()?.classList.add("cx-city"),
+              click: () => onCityClick(c.id),
+            }}
+          >
+            <Tooltip permanent direction="right" offset={[6, 0]} className="cx-place-label">
+              {c.name}
+            </Tooltip>
+          </CircleMarker>
+        );
+      })}
 
-      {MOUNTAINS.map((m) => (
-        <Marker key={m.name} position={[m.lat, m.lng]} icon={mountainIcon} interactive={false}>
-          <Tooltip permanent direction="right" offset={[8, 0]} className="cx-place-label">
-            {m.name}
-          </Tooltip>
-        </Marker>
-      ))}
+      {zoom >= MOUNTAIN_MIN_ZOOM &&
+        MOUNTAINS.map((m) => (
+          <Marker key={m.name} position={[m.lat, m.lng]} icon={mountainIcon} interactive={false}>
+            <Tooltip permanent direction="right" offset={[8, 0]} className="cx-place-label">
+              {m.name}
+            </Tooltip>
+          </Marker>
+        ))}
     </>
   );
 }

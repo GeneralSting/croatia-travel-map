@@ -5,22 +5,29 @@ import { MapContainer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import type { FeatureCollection } from "geojson";
 import "leaflet/dist/leaflet.css";
-import { COUNTIES, getVisitedPercent } from "@/data/croatiaData";
+import { COUNTIES, getCity, getVisitedPercent } from "@/data/croatiaData";
 import { useTravelData } from "@/lib/useTravelData";
 import MapShapes from "@/components/map/MapShapes";
 import PlaceMarkers from "@/components/map/PlaceMarkers";
 import MapLegend from "@/components/map/MapLegend";
 import GlobalStats from "@/components/map/GlobalStats";
 import CountyPanel from "@/components/panel/CountyPanel";
+import CityPanel from "@/components/panel/CityPanel";
 import SummaryDrawer from "@/components/panel/SummaryDrawer";
 import { Compass } from "lucide-react";
 
 const MAP_CENTER: LatLngExpression = [45.1, 16.45];
 
+// The right-hand panel is a small navigation stack: a county view can drill into one of its
+// cities (with a back arrow), and a city marker on the map opens the city view directly.
+type PanelView =
+  | { kind: "county"; countyId: string }
+  | { kind: "city"; cityId: string; countyId: string };
+
 export default function CroatiaMap() {
   const { poiDataMap, countyDataMap, loaded, updatePOI, setCountyOverride } =
     useTravelData();
-  const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
+  const [view, setView] = useState<PanelView | null>(null);
   const [geoJson, setGeoJson] = useState<FeatureCollection | null>(null);
   const [islands, setIslands] = useState<FeatureCollection | null>(null);
 
@@ -51,8 +58,30 @@ export default function CroatiaMap() {
   }, [poiDataMap, countyDataMap]);
 
   const handleCountyClick = useCallback((countyId: string) => {
-    setSelectedCounty((prev) => (prev === countyId ? null : countyId));
+    setView((prev) =>
+      prev?.kind === "county" && prev.countyId === countyId
+        ? null
+        : { kind: "county", countyId },
+    );
   }, []);
+
+  const handleCityClick = useCallback((cityId: string) => {
+    const city = getCity(cityId);
+    if (!city) return;
+    setView({ kind: "city", cityId, countyId: city.county_id });
+  }, []);
+
+  const handleCityBack = useCallback(() => {
+    setView((prev) =>
+      prev ? { kind: "county", countyId: prev.countyId } : null,
+    );
+  }, []);
+
+  const closePanel = useCallback(() => setView(null), []);
+
+  // A city keeps its parent county highlighted on the map; a bare county highlights itself.
+  const selectedCounty = view ? view.countyId : null;
+  const selectedCity = view?.kind === "city" ? view.cityId : null;
 
   if (!loaded || !geoJson) {
     return (
@@ -85,6 +114,9 @@ export default function CroatiaMap() {
             </p>
           </div>
         </div>
+
+        {/* Stats live in the top bar so they never float over the map, drawer, or panel. */}
+        <GlobalStats poiDataMap={poiDataMap} />
       </div>
 
       {/* Main content */}
@@ -94,7 +126,7 @@ export default function CroatiaMap() {
           <MapContainer
             center={MAP_CENTER}
             zoom={7}
-            minZoom={6}
+            minZoom={7}
             maxZoom={12}
             style={{ height: "100%", width: "100%", background: "#0C1A2E" }}
             zoomControl={true}
@@ -107,11 +139,11 @@ export default function CroatiaMap() {
               onCountyClick={handleCountyClick}
               selectedCounty={selectedCounty}
             />
-            <PlaceMarkers />
+            <PlaceMarkers
+              onCityClick={handleCityClick}
+              selectedCity={selectedCity}
+            />
           </MapContainer>
-
-          {/* Floating stats bar */}
-          <GlobalStats poiDataMap={poiDataMap} />
 
           {/* Legend */}
           <MapLegend />
@@ -124,17 +156,28 @@ export default function CroatiaMap() {
           />
         </div>
 
-        {/* County side panel */}
-        {selectedCounty && (
+        {/* Right-hand panel: county overview, or a drilled-in city view */}
+        {view && (
           <div className="w-full sm:w-96 flex-shrink-0 h-full overflow-hidden shadow-2xl animate-slide-in">
-            <CountyPanel
-              countyId={selectedCounty}
-              poiDataMap={poiDataMap}
-              countyDataMap={countyDataMap}
-              onClose={() => setSelectedCounty(null)}
-              onPOIUpdate={updatePOI}
-              onCountyOverride={setCountyOverride}
-            />
+            {view.kind === "county" ? (
+              <CountyPanel
+                countyId={view.countyId}
+                poiDataMap={poiDataMap}
+                countyDataMap={countyDataMap}
+                onClose={closePanel}
+                onCitySelect={handleCityClick}
+                onPOIUpdate={updatePOI}
+                onCountyOverride={setCountyOverride}
+              />
+            ) : (
+              <CityPanel
+                cityId={view.cityId}
+                poiDataMap={poiDataMap}
+                onClose={closePanel}
+                onBack={handleCityBack}
+                onPOIUpdate={updatePOI}
+              />
+            )}
           </div>
         )}
       </div>

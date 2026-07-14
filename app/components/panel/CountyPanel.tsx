@@ -5,14 +5,17 @@ import {
   COUNTIES,
   POIS,
   POI_TYPES,
+  citiesForCounty,
+  getCityPercent,
   getGradientColor,
+  looseCountyPois,
   type CountyDataMap,
   type POI,
   type POIDataMap,
   type PoiType,
 } from "@/data/croatiaData";
 import type { POIUpdate } from "@/lib/useTravelData";
-import { X, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { X, RotateCcw, SlidersHorizontal, ChevronRight } from "lucide-react";
 import POICard from "./POICard";
 
 const TYPE_ORDER: PoiType[] = [
@@ -32,6 +35,7 @@ interface CountyPanelProps {
   poiDataMap: POIDataMap;
   countyDataMap: CountyDataMap;
   onClose: () => void;
+  onCitySelect: (cityId: string) => void;
   onPOIUpdate: (poiId: string, data: POIUpdate) => void | Promise<void>;
   onCountyOverride: (
     countyId: string,
@@ -45,11 +49,14 @@ export default function CountyPanel({
   poiDataMap,
   countyDataMap,
   onClose,
+  onCitySelect,
   onPOIUpdate,
   onCountyOverride,
 }: CountyPanelProps) {
   const county = COUNTIES.find((c) => c.id === countyId);
   const countyPois = POIS.filter((p) => p.county_id === countyId);
+  const cities = citiesForCounty(countyId);
+  const loosePois = looseCountyPois(countyId);
   const countyRecord = countyDataMap[countyId];
   const isManual = countyRecord?.is_manual_override;
   const [showSlider, setShowSlider] = useState(false);
@@ -69,7 +76,7 @@ export default function CountyPanel({
 
   const groupedPois = useMemo(() => {
     const groups: Record<string, POI[]> = {};
-    countyPois.forEach((poi) => {
+    loosePois.forEach((poi) => {
       if (!groups[poi.type]) groups[poi.type] = [];
       groups[poi.type].push(poi);
     });
@@ -77,7 +84,7 @@ export default function CountyPanel({
       type: t,
       pois: groups[t],
     }));
-  }, [countyPois]);
+  }, [loosePois]);
 
   const visitedCount = countyPois.filter(
     (p) => poiDataMap[p.id]?.status === "visited",
@@ -107,6 +114,8 @@ export default function CountyPanel({
             </h2>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-xs text-white/50">
+                {cities.length > 0 &&
+                  `${cities.length} ${cities.length === 1 ? "city" : "cities"} · `}
                 {countyPois.length} points of interest
               </span>
               {isManual && (
@@ -232,6 +241,52 @@ export default function CountyPanel({
 
       {/* POI list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        {/* Cities & towns — click through to a city's own places to visit */}
+        {cities.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm">🏙️</span>
+              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">
+                Cities &amp; Towns
+              </p>
+              <div className="flex-1 h-px bg-white/5" />
+            </div>
+            <div className="space-y-2">
+              {cities.map((city) => {
+                const cityPercent = getCityPercent(city.id, poiDataMap);
+                return (
+                  <button
+                    key={city.id}
+                    onClick={() => onCitySelect(city.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-slate-800/40 hover:bg-slate-800/80 hover:border-white/20 transition-all text-left"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white leading-tight truncate">
+                        {city.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${cityPercent}%`,
+                              backgroundColor: getGradientColor(cityPercent),
+                            }}
+                          />
+                        </div>
+                        <span className="text-[10px] text-white/40">
+                          {cityPercent}% explored
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-white/30 flex-shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {groupedPois.map(({ type, pois }) => {
           const typeInfo = POI_TYPES[type];
           return (

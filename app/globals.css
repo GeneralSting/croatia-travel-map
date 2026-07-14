@@ -55,7 +55,19 @@ body {
   background: rgba(30, 41, 59, 0.95) !important;
 }
 
-/* ── Place markers (towns / mountains) ──────────────────────────────── */
+/* ── Place markers (cities / mountains) ─────────────────────────────── */
+/* City dots are clickable (they open the city panel). */
+.cx-city {
+  cursor: pointer;
+  transition:
+    fill 0.15s ease,
+    r 0.15s ease;
+}
+
+.cx-city:hover {
+  fill: #38bdf8;
+}
+
 .cx-mtn-icon {
   background: transparent;
   border: none;
