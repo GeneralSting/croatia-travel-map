@@ -9,6 +9,7 @@ import { COUNTIES, getCity, getVisitedPercent } from "@/data/croatiaData";
 import { useTravelData } from "@/lib/useTravelData";
 import MapShapes from "@/components/map/MapShapes";
 import PlaceMarkers from "@/components/map/PlaceMarkers";
+import CroatiaLoading from "@/components/map/CroatiaLoading";
 import MapLegend from "@/components/map/MapLegend";
 import GlobalStats from "@/components/map/GlobalStats";
 import CountyPanel from "@/components/panel/CountyPanel";
@@ -33,11 +34,11 @@ export default function CroatiaMap() {
 
   // Load the county boundaries + islands once from our local static assets.
   useEffect(() => {
-    fetch("/croatia-counties.geojson")
+    fetch("/geo/croatia-counties.geojson")
       .then((res) => res.json())
       .then((data: FeatureCollection) => setGeoJson(data))
       .catch((e) => console.error("Failed to load Croatia GeoJSON", e));
-    fetch("/croatia-islands.geojson")
+    fetch("/geo/croatia-islands.geojson")
       .then((res) => res.json())
       .then((data: FeatureCollection) => setIslands(data))
       .catch((e) => console.error("Failed to load Croatia islands GeoJSON", e));
@@ -83,16 +84,13 @@ export default function CroatiaMap() {
   const selectedCounty = view ? view.countyId : null;
   const selectedCity = view?.kind === "city" ? view.cityId : null;
 
-  if (!loaded || !geoJson) {
+  if (loaded || !geoJson) {
     return (
-      <div className="fixed inset-0 bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <Compass
-            className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin"
-            style={{ animationDuration: "2s" }}
-          />
-          <p className="text-white/60 text-sm">Loading Croatia map...</p>
-        </div>
+      <div
+        className="fixed inset-0 flex items-center justify-center"
+        style={{ background: "radial-gradient(circle at 50% 42%, #0d2136 0%, #06111f 68%)" }}
+      >
+        <CroatiaLoading />
       </div>
     );
   }

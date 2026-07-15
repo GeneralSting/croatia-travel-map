@@ -5,19 +5,16 @@
 // `ssr: false` is only allowed inside a Client Component, which is why this wrapper exists.
 
 import dynamic from "next/dynamic";
-import { Compass } from "lucide-react";
+import CroatiaLoading from "./CroatiaLoading";
 
 const CroatiaMap = dynamic(() => import("./CroatiaMap"), {
   ssr: false,
   loading: () => (
-    <div className="fixed inset-0 bg-slate-950 flex items-center justify-center">
-      <div className="text-center">
-        <Compass
-          className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin"
-          style={{ animationDuration: "2s" }}
-        />
-        <p className="text-white/60 text-sm">Loading Croatia map...</p>
-      </div>
+    <div
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ background: "radial-gradient(circle at 50% 42%, #0d2136 0%, #06111f 68%)" }}
+    >
+      <CroatiaLoading />
     </div>
   ),
 });
