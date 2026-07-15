@@ -10,6 +10,7 @@ import { useTravelData } from "@/lib/useTravelData";
 import MapShapes from "@/components/map/MapShapes";
 import PlaceMarkers from "@/components/map/PlaceMarkers";
 import CroatiaLoading from "@/components/map/CroatiaLoading";
+import UserMenu from "@/components/auth/UserMenu";
 import MapLegend from "@/components/map/MapLegend";
 import GlobalStats from "@/components/map/GlobalStats";
 import CountyPanel from "@/components/panel/CountyPanel";
@@ -84,7 +85,7 @@ export default function CroatiaMap() {
   const selectedCounty = view ? view.countyId : null;
   const selectedCity = view?.kind === "city" ? view.cityId : null;
 
-  if (loaded || !geoJson) {
+  if (!loaded || !geoJson) {
     return (
       <div
         className="fixed inset-0 flex items-center justify-center"
@@ -113,8 +114,11 @@ export default function CroatiaMap() {
           </div>
         </div>
 
-        {/* Stats live in the top bar so they never float over the map, drawer, or panel. */}
-        <GlobalStats poiDataMap={poiDataMap} />
+        {/* Right side: stats live in the top bar (never float over the map), plus the user menu. */}
+        <div className="flex items-center gap-4">
+          <GlobalStats poiDataMap={poiDataMap} />
+          <UserMenu />
+        </div>
       </div>
 
       {/* Main content */}

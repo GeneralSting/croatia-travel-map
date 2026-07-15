@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.5",
+    "@tanstack/react-query": "^5.101.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.21.0",
     "next": "16.2.9",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   POI_TYPES,
   type POI,
@@ -8,12 +9,14 @@ import {
   type POIStatus,
 } from "@/data/croatiaData";
 import type { POIUpdate } from "@/lib/useTravelData";
+import { useAuth } from "@/components/auth/AuthProvider";
 import {
   Star,
   ChevronDown,
   ChevronUp,
   Calendar,
   MessageSquare,
+  LogIn,
 } from "lucide-react";
 
 interface StatusOption {
@@ -54,6 +57,10 @@ interface POICardProps {
 }
 
 export default function POICard({ poi, userData, onUpdate }: POICardProps) {
+  const { configured, user } = useAuth();
+  // Once Supabase is set up, tracking requires an account.
+  const loginRequired = configured && !user;
+
   const [expanded, setExpanded] = useState(false);
   const [localData, setLocalData] = useState<POIUpdate>({
     status: userData?.status || "not_visited",
@@ -130,8 +137,18 @@ export default function POICard({ poi, userData, onUpdate }: POICardProps) {
           {/* Description */}
           <p className="text-xs text-white/50 italic">{poi.description}</p>
 
-          {/* Status toggle buttons */}
-          <div>
+          {loginRequired ? (
+            <Link
+              href="/login"
+              className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-white/10 bg-slate-800/60 text-xs text-white/60 hover:text-white hover:border-white/25 transition-colors"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              Sign in to track this place
+            </Link>
+          ) : (
+            <>
+              {/* Status toggle buttons */}
+              <div>
             <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">
               Status
             </p>
@@ -224,6 +241,8 @@ export default function POICard({ poi, userData, onUpdate }: POICardProps) {
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
+            </>
+          )}
         </div>
       )}
     </div>

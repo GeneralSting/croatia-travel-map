@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Providers from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Croatia Explorer — Interactive Travel Map",
+  title: "Croatia Explorer - Interactive Travel Map",
   description:
     "Track where you've been and where you want to go across Croatia's counties and points of interest.",
   manifest: "/site.webmanifest",
@@ -43,7 +44,9 @@ export default function RootLayout({
     >
       {/* suppressHydrationWarning: browser extensions (e.g. ColorZilla) inject
           attributes onto <body> before React hydrates, which is harmless here. */}
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
