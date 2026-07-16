@@ -54,9 +54,19 @@ interface PoiMarkersProps {
   userPois: UserPoi[];
   onPoiClick: (poiId: string) => void;
   selectedPoi: string | null;
+  /** When true, every pin shows its name permanently; otherwise only on hover. */
+  showNames: boolean;
+  /** Which POI types are currently shown. */
+  enabledTypes: Record<PoiType, boolean>;
 }
 
-export default function PoiMarkers({ userPois, onPoiClick, selectedPoi }: PoiMarkersProps) {
+export default function PoiMarkers({
+  userPois,
+  onPoiClick,
+  selectedPoi,
+  showNames,
+  enabledTypes,
+}: PoiMarkersProps) {
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
@@ -79,7 +89,9 @@ export default function PoiMarkers({ userPois, onPoiClick, selectedPoi }: PoiMar
     return [...seed, ...user];
   }, [userPois]);
 
-  const visible = markers.filter((m) => zoom >= minZoomFor(m.type));
+  const visible = markers.filter(
+    (m) => enabledTypes[m.type] && zoom >= minZoomFor(m.type),
+  );
 
   return (
     <>
@@ -91,7 +103,14 @@ export default function PoiMarkers({ userPois, onPoiClick, selectedPoi }: PoiMar
           zIndexOffset={selectedPoi === m.id ? 1000 : 0}
           eventHandlers={{ click: () => onPoiClick(m.id) }}
         >
-          <Tooltip permanent direction="right" offset={[14, 0]} className="cx-place-label">
+          {/* key forces Leaflet to rebind when the permanent/hover mode changes */}
+          <Tooltip
+            key={showNames ? "perm" : "hover"}
+            permanent={showNames}
+            direction="right"
+            offset={[14, 0]}
+            className="cx-place-label"
+          >
             {m.name}
           </Tooltip>
         </Marker>

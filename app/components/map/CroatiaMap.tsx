@@ -7,6 +7,7 @@ import type { FeatureCollection } from "geojson";
 import "leaflet/dist/leaflet.css";
 import {
   COUNTIES,
+  POI_TYPES,
   getCity,
   getPoi,
   getMountainPoi,
@@ -63,6 +64,19 @@ export default function CroatiaMap() {
   const [placing, setPlacing] = useState<Placing | null>(null);
   const [geoJson, setGeoJson] = useState<FeatureCollection | null>(null);
   const [islands, setIslands] = useState<FeatureCollection | null>(null);
+
+  // Map display settings (owned here, controlled from MapLegend, consumed by the marker layers).
+  const [showPoiNames, setShowPoiNames] = useState(true);
+  const [enabledTypes, setEnabledTypes] = useState<Record<PoiType, boolean>>(
+    () =>
+      Object.fromEntries(
+        (Object.keys(POI_TYPES) as PoiType[]).map((t) => [t, true]),
+      ) as Record<PoiType, boolean>,
+  );
+  const toggleType = useCallback(
+    (t: PoiType) => setEnabledTypes((prev) => ({ ...prev, [t]: !prev[t] })),
+    [],
+  );
 
   // Load the county boundaries + islands once from our local static assets.
   useEffect(() => {
@@ -237,11 +251,15 @@ export default function CroatiaMap() {
             <PlaceMarkers
               onCityClick={handleCityClick}
               selectedCity={selectedCity}
+              show={enabledTypes.city}
+              showNames={showPoiNames}
             />
             <PoiMarkers
               userPois={userPois}
               onPoiClick={handlePoiClick}
               selectedPoi={selectedPoi}
+              showNames={showPoiNames}
+              enabledTypes={enabledTypes}
             />
             <MapClickHandler active={!!placing} onPick={handlePlacePick} />
           </MapContainer>
@@ -263,8 +281,13 @@ export default function CroatiaMap() {
             </div>
           )}
 
-          {/* Legend */}
-          <MapLegend />
+          {/* Display filters */}
+          <MapLegend
+            showNames={showPoiNames}
+            onToggleNames={() => setShowPoiNames((v) => !v)}
+            enabledTypes={enabledTypes}
+            onToggleType={toggleType}
+          />
 
           {/* Summary drawer */}
           <SummaryDrawer

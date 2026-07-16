@@ -31,12 +31,23 @@ function cityIcon(selected: boolean): L.DivIcon {
 interface PlaceMarkersProps {
   onCityClick: (cityId: string) => void;
   selectedCity: string | null;
+  /** Towns are the "city" POI type — hidden when that filter is off. */
+  show: boolean;
+  /** When true, every town shows its name permanently; otherwise only on hover. */
+  showNames: boolean;
 }
 
-export default function PlaceMarkers({ onCityClick, selectedCity }: PlaceMarkersProps) {
+export default function PlaceMarkers({
+  onCityClick,
+  selectedCity,
+  show,
+  showNames,
+}: PlaceMarkersProps) {
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
+
+  if (!show) return null;
 
   const visibleCities = CITIES.filter((c) => zoom >= CITY_MIN_ZOOM[c.importance]);
 
@@ -52,7 +63,14 @@ export default function PlaceMarkers({ onCityClick, selectedCity }: PlaceMarkers
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onCityClick(c.id) }}
           >
-            <Tooltip permanent direction="right" offset={[14, 0]} className="cx-place-label">
+            {/* key forces Leaflet to rebind when the permanent/hover mode changes */}
+            <Tooltip
+              key={showNames ? "perm" : "hover"}
+              permanent={showNames}
+              direction="right"
+              offset={[14, 0]}
+              className="cx-place-label"
+            >
               {c.name}
             </Tooltip>
           </Marker>

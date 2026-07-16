@@ -14,7 +14,6 @@ export const POI_COORDS: Record<string, [number, number]> = {
   "biokovo-mountain": [43.3414, 17.0506],
   "brac-island": [43.3, 16.65],
   "brijuni-np": [44.9142, 13.7583],
-  "cakovec": [46.3897, 16.438],
   "camp-amadria-trogir": [43.5133, 16.2169],
   "camp-avalona": [44.3342, 15.0991],
   "camp-banki-green": [45.2411, 13.7656],

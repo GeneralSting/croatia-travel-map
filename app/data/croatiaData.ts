@@ -285,13 +285,6 @@ const RAW_POIS: POI[] = [
     description: "One of Europe's most beautiful cemeteries, a park-museum",
   },
   {
-    id: "cakovec",
-    county_id: "varazdin",
-    name: "Čakovec",
-    type: "city",
-    description: "Regional center with a restored Renaissance castle",
-  },
-  {
     id: "varazdin-toplice",
     county_id: "varazdin",
     name: "Varaždinske Toplice",
