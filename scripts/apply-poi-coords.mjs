@@ -12,7 +12,7 @@ import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CSV = join(root, "data-entry", "poi-coordinates.csv");
-const OUT = join(root, "app", "data", "poiCoords.ts");
+const OUT = join(root, "src", "features", "map-explorer", "data", "poiCoords.ts");
 
 /** Minimal CSV row parser (handles quoted fields with commas / doubled quotes). */
 function parseRow(line) {
@@ -77,4 +77,4 @@ ${body || "  // (none yet — fill data-entry/poi-coordinates.csv)"}
 `;
 
 writeFileSync(OUT, out);
-console.log(`Wrote ${entries.length} coordinate(s) to app/data/poiCoords.ts` + (skipped ? ` (${skipped} row(s) still blank)` : ""));
+console.log(`Wrote ${entries.length} coordinate(s) to src/features/map-explorer/data/poiCoords.ts` + (skipped ? ` (${skipped} row(s) still blank)` : ""));
