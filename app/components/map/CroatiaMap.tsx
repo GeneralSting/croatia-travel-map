@@ -5,31 +5,62 @@ import { MapContainer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import type { FeatureCollection } from "geojson";
 import "leaflet/dist/leaflet.css";
-import { COUNTIES, getCity, getVisitedPercent } from "@/data/croatiaData";
+import {
+  COUNTIES,
+  getCity,
+  getPoi,
+  getMountainPoi,
+  getVisitedPercent,
+  type POI,
+  type PoiType,
+} from "@/data/croatiaData";
 import { useTravelData } from "@/lib/useTravelData";
 import MapShapes from "@/components/map/MapShapes";
 import PlaceMarkers from "@/components/map/PlaceMarkers";
+import PoiMarkers from "@/components/map/PoiMarkers";
+import MapClickHandler from "@/components/map/MapClickHandler";
 import CroatiaLoading from "@/components/map/CroatiaLoading";
 import UserMenu from "@/components/auth/UserMenu";
 import MapLegend from "@/components/map/MapLegend";
 import GlobalStats from "@/components/map/GlobalStats";
 import CountyPanel from "@/components/panel/CountyPanel";
 import CityPanel from "@/components/panel/CityPanel";
+import PoiPanel from "@/components/panel/PoiPanel";
 import SummaryDrawer from "@/components/panel/SummaryDrawer";
-import { Compass } from "lucide-react";
+import { Compass, MapPin, X } from "lucide-react";
 
 const MAP_CENTER: LatLngExpression = [45.1, 16.45];
 
 // The right-hand panel is a small navigation stack: a county view can drill into one of its
-// cities (with a back arrow), and a city marker on the map opens the city view directly.
+// cities (with a back arrow), a city marker opens the city view directly, and a POI pin opens
+// that place's detail.
 type PanelView =
   | { kind: "county"; countyId: string }
-  | { kind: "city"; cityId: string; countyId: string };
+  | { kind: "city"; cityId: string; countyId: string }
+  | { kind: "poi"; poiId: string; countyId: string };
+
+// While the user is adding a place, we hold the form values and wait for a map click to
+// supply the coordinates.
+interface Placing {
+  countyId: string;
+  name: string;
+  type: PoiType;
+  description?: string;
+}
 
 export default function CroatiaMap() {
-  const { poiDataMap, countyDataMap, loaded, updatePOI, setCountyOverride } =
-    useTravelData();
+  const {
+    poiDataMap,
+    countyDataMap,
+    userPois,
+    loaded,
+    updatePOI,
+    setCountyOverride,
+    addUserPoi,
+    deleteUserPoi,
+  } = useTravelData();
   const [view, setView] = useState<PanelView | null>(null);
+  const [placing, setPlacing] = useState<Placing | null>(null);
   const [geoJson, setGeoJson] = useState<FeatureCollection | null>(null);
   const [islands, setIslands] = useState<FeatureCollection | null>(null);
 
@@ -81,9 +112,71 @@ export default function CroatiaMap() {
 
   const closePanel = useCallback(() => setView(null), []);
 
+  // Clicking a pin opens that POI's detail. The county comes from the seed POI, or from the
+  // user's own POI record.
+  const handlePoiClick = useCallback(
+    (poiId: string) => {
+      const seed = getPoi(poiId) ?? getMountainPoi(poiId);
+      const countyId =
+        seed?.county_id ?? userPois.find((p) => p.id === poiId)?.county_id;
+      if (!countyId) return;
+      setView({ kind: "poi", poiId, countyId });
+    },
+    [userPois],
+  );
+
+  // Kick off "add a place": stash the form values and wait for a map click. Close any open
+  // panel so the whole map is clickable (important on mobile, where the panel is full-width).
+  const handleStartAddPlace = useCallback(
+    (countyId: string, name: string, type: PoiType, description?: string) => {
+      setView(null);
+      setPlacing({ countyId, name, type, description });
+    },
+    [],
+  );
+
+  const handlePlacePick = useCallback(
+    (lat: number, lng: number) => {
+      if (!placing) return;
+      const created = addUserPoi({
+        county_id: placing.countyId,
+        name: placing.name,
+        type: placing.type,
+        description: placing.description,
+        lat,
+        lng,
+      });
+      setPlacing(null);
+      if (created) setView({ kind: "poi", poiId: created.id, countyId: placing.countyId });
+    },
+    [placing, addUserPoi],
+  );
+
+  // Esc cancels placement mode.
+  useEffect(() => {
+    if (!placing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPlacing(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [placing]);
+
+  // The POI currently shown in the panel (seed POI, or the user's own place mapped to POI shape).
+  const activePoi: POI | null = useMemo(() => {
+    if (view?.kind !== "poi") return null;
+    const seed = getPoi(view.poiId) ?? getMountainPoi(view.poiId);
+    if (seed) return seed;
+    const u = userPois.find((p) => p.id === view.poiId);
+    return u ? { ...u, description: u.description ?? "" } : null;
+  }, [view, userPois]);
+  const activePoiIsUser =
+    view?.kind === "poi" && !getPoi(view.poiId) && !getMountainPoi(view.poiId);
+
   // A city keeps its parent county highlighted on the map; a bare county highlights itself.
   const selectedCounty = view ? view.countyId : null;
   const selectedCity = view?.kind === "city" ? view.cityId : null;
+  const selectedPoi = view?.kind === "poi" ? view.poiId : null;
 
   if (!loaded || !geoJson) {
     return (
@@ -145,7 +238,30 @@ export default function CroatiaMap() {
               onCityClick={handleCityClick}
               selectedCity={selectedCity}
             />
+            <PoiMarkers
+              userPois={userPois}
+              onPoiClick={handlePoiClick}
+              selectedPoi={selectedPoi}
+            />
+            <MapClickHandler active={!!placing} onPick={handlePlacePick} />
           </MapContainer>
+
+          {/* Placement banner while adding a place */}
+          {placing && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-1000 flex items-center gap-3 px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-medium shadow-lg">
+              <MapPin className="w-4 h-4" />
+              <span className="max-w-[60vw] truncate">
+                Click the map to place “{placing.name}”
+              </span>
+              <button
+                onClick={() => setPlacing(null)}
+                className="p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                title="Cancel (Esc)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {/* Legend */}
           <MapLegend />
@@ -158,26 +274,46 @@ export default function CroatiaMap() {
           />
         </div>
 
-        {/* Right-hand panel: county overview, or a drilled-in city view */}
+        {/* Right-hand panel: county overview, a drilled-in city view, or a single POI's detail */}
         {view && (
           <div className="w-full sm:w-96 flex-shrink-0 h-full overflow-hidden shadow-2xl animate-slide-in">
-            {view.kind === "county" ? (
+            {view.kind === "county" && (
               <CountyPanel
                 countyId={view.countyId}
                 poiDataMap={poiDataMap}
                 countyDataMap={countyDataMap}
+                userPois={userPois}
                 onClose={closePanel}
                 onCitySelect={handleCityClick}
+                onPoiSelect={handlePoiClick}
                 onPOIUpdate={updatePOI}
                 onCountyOverride={setCountyOverride}
+                onAddPlace={handleStartAddPlace}
               />
-            ) : (
+            )}
+            {view.kind === "city" && (
               <CityPanel
                 cityId={view.cityId}
                 poiDataMap={poiDataMap}
                 onClose={closePanel}
                 onBack={handleCityBack}
                 onPOIUpdate={updatePOI}
+              />
+            )}
+            {view.kind === "poi" && activePoi && (
+              <PoiPanel
+                poi={activePoi}
+                userData={poiDataMap[activePoi.id]}
+                onUpdate={updatePOI}
+                onClose={closePanel}
+                onDelete={
+                  activePoiIsUser
+                    ? () => {
+                        deleteUserPoi(activePoi.id);
+                        closePanel();
+                      }
+                    : undefined
+                }
               />
             )}
           </div>

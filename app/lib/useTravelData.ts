@@ -15,16 +15,35 @@ import type {
   CountyDataMap,
   POIDataMap,
   POIStatus,
+  PoiType,
+  UserPoi,
 } from "@/data/croatiaData";
 
 const POI_KEY = "croatia-explorer:pois";
 const COUNTY_KEY = "croatia-explorer:counties";
+const USER_POI_KEY = "croatia-explorer:user-pois";
 
 export interface POIUpdate {
   status: POIStatus;
   rating?: number | null;
   date_visited?: string | null;
   notes?: string | null;
+}
+
+/** Fields a user supplies when adding their own place (id is generated). */
+export interface NewUserPoi {
+  county_id: string;
+  name: string;
+  type: PoiType;
+  description?: string;
+  lat: number;
+  lng: number;
+}
+
+function newId(): string {
+  return typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function load<T>(key: string): T | null {
@@ -57,12 +76,14 @@ export function useTravelData() {
   // ── Mode 1: localStorage (only while Supabase is not configured) ──────────
   const [localPoi, setLocalPoi] = useState<POIDataMap>({});
   const [localCounty, setLocalCounty] = useState<CountyDataMap>({});
+  const [localUserPois, setLocalUserPois] = useState<UserPoi[]>([]);
   const [localLoaded, setLocalLoaded] = useState(false);
 
   useEffect(() => {
     if (isSupabaseConfigured) return;
     setLocalPoi(load<POIDataMap>(POI_KEY) ?? {});
     setLocalCounty(load<CountyDataMap>(COUNTY_KEY) ?? {});
+    setLocalUserPois(load<UserPoi[]>(USER_POI_KEY) ?? []);
     setLocalLoaded(true);
   }, []);
 
@@ -83,6 +104,15 @@ export function useTravelData() {
       /* ignore */
     }
   }, [localCounty, localLoaded]);
+
+  useEffect(() => {
+    if (isSupabaseConfigured || !localLoaded) return;
+    try {
+      localStorage.setItem(USER_POI_KEY, JSON.stringify(localUserPois));
+    } catch {
+      /* ignore */
+    }
+  }, [localUserPois, localLoaded]);
 
   // ── Modes 2/3: Supabase (fetch this user's rows; cached by React Query) ────
   const enabled = configured && !!user;
@@ -154,6 +184,72 @@ export function useTravelData() {
       queryClient.invalidateQueries({ queryKey: ["county_overrides", uid] }),
   });
 
+  const userPoiQuery = useQuery({
+    queryKey: ["user_pois", uid],
+    enabled,
+    queryFn: async (): Promise<UserPoi[]> => {
+      const { data, error } = await createClient()
+        .from("user_pois")
+        .select("id,county_id,name,type,description,lat,lng")
+        .eq("user_id", uid!);
+      if (error) throw error;
+      return (data ?? []) as UserPoi[];
+    },
+  });
+
+  const addUserPoiMutation = useMutation({
+    mutationFn: async (poi: UserPoi) => {
+      const { error } = await createClient().from("user_pois").insert({
+        id: poi.id,
+        user_id: uid!,
+        county_id: poi.county_id,
+        name: poi.name,
+        type: poi.type,
+        description: poi.description ?? null,
+        lat: poi.lat,
+        lng: poi.lng,
+      });
+      if (error) throw error;
+    },
+    // Show the new pin immediately, then reconcile with the server.
+    onMutate: async (poi: UserPoi) => {
+      await queryClient.cancelQueries({ queryKey: ["user_pois", uid] });
+      const prev = queryClient.getQueryData<UserPoi[]>(["user_pois", uid]);
+      queryClient.setQueryData<UserPoi[]>(["user_pois", uid], (old) => [...(old ?? []), poi]);
+      return { prev };
+    },
+    onError: (_e, _poi, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["user_pois", uid], ctx.prev);
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: ["user_pois", uid] }),
+  });
+
+  const deleteUserPoiMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const client = createClient();
+      const { error } = await client.from("user_pois").delete().eq("id", id).eq("user_id", uid!);
+      if (error) throw error;
+      // Drop any tracking progress tied to this place too.
+      await client.from("poi_progress").delete().eq("poi_id", id).eq("user_id", uid!);
+    },
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["user_pois", uid] });
+      const prev = queryClient.getQueryData<UserPoi[]>(["user_pois", uid]);
+      queryClient.setQueryData<UserPoi[]>(["user_pois", uid], (old) =>
+        (old ?? []).filter((p) => p.id !== id),
+      );
+      return { prev };
+    },
+    onError: (_e, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["user_pois", uid], ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["user_pois", uid] });
+      queryClient.invalidateQueries({ queryKey: ["poi_progress", uid] });
+    },
+  });
+
   // ── Derive the maps the UI consumes ───────────────────────────────────────
   const dbPoiMap = useMemo<POIDataMap>(() => {
     const map: POIDataMap = {};
@@ -181,6 +277,7 @@ export function useTravelData() {
 
   const poiDataMap = isSupabaseConfigured ? dbPoiMap : localPoi;
   const countyDataMap = isSupabaseConfigured ? dbCountyMap : localCounty;
+  const userPois = isSupabaseConfigured ? userPoiQuery.data ?? [] : localUserPois;
 
   // The map itself only needs geometry to render; progress fills in when it arrives.
   const loaded = isSupabaseConfigured ? true : localLoaded;
@@ -227,12 +324,54 @@ export function useTravelData() {
     [user, countyMutation, router],
   );
 
+  // Returns the created POI (with its generated id) so the caller can open its detail panel.
+  const addUserPoi = useCallback(
+    (input: NewUserPoi): UserPoi | null => {
+      const poi: UserPoi = { id: newId(), ...input };
+      if (!isSupabaseConfigured) {
+        setLocalUserPois((prev) => [...prev, poi]);
+        return poi;
+      }
+      if (!user) {
+        router.push("/login");
+        return null;
+      }
+      addUserPoiMutation.mutate(poi);
+      return poi;
+    },
+    [user, addUserPoiMutation, router],
+  );
+
+  const deleteUserPoi = useCallback(
+    (id: string) => {
+      if (!isSupabaseConfigured) {
+        setLocalUserPois((prev) => prev.filter((p) => p.id !== id));
+        setLocalPoi((prev) => {
+          if (!(id in prev)) return prev;
+          const rest = { ...prev };
+          delete rest[id];
+          return rest;
+        });
+        return;
+      }
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      deleteUserPoiMutation.mutate(id);
+    },
+    [user, deleteUserPoiMutation, router],
+  );
+
   return {
     poiDataMap,
     countyDataMap,
+    userPois,
     loaded,
     canEdit,
     updatePOI,
     setCountyOverride,
+    addUserPoi,
+    deleteUserPoi,
   };
 }

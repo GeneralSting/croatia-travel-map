@@ -2,6 +2,8 @@
 // interest, the POI type catalogue, and the helpers that turn a user's progress into a
 // "percent explored" and a fill colour. Pure data + pure functions — no side effects.
 
+import { POI_COORDS } from "./poiCoords";
+
 export type PoiType =
   | "city"
   | "mountain"
@@ -27,6 +29,23 @@ export interface POI {
   name: string;
   type: PoiType;
   description: string;
+  /** Map position. Seed POIs get these from poiCoords.ts; a POI is only drawn once it has both. */
+  lat?: number;
+  lng?: number;
+}
+
+/**
+ * A place a signed-in user adds themselves (private to them). Same shape the panels/markers
+ * expect from a POI, but coordinates are always present (the user drops the pin on the map).
+ */
+export interface UserPoi {
+  id: string;
+  county_id: string;
+  name: string;
+  type: PoiType;
+  description?: string;
+  lat: number;
+  lng: number;
 }
 
 /** A user's saved progress for a single POI (browser-local). */
@@ -78,39 +97,39 @@ export const COUNTIES: County[] = [
   { id: "medimurje", name: "Međimurje County", color: "#334155" },
 ];
 
-/** Simple point indicators drawn on the map (major towns + notable mountains). */
+/**
+ * Notable mountain peaks with real coordinates. These are drawn on the map as clickable
+ * ⛰️ POI pins (see mountainPois) — the coordinates are the peaks' actual positions and the
+ * county is the one each point falls in (computed against the county shapes).
+ */
 export interface PlaceMarker {
+  id: string;
   name: string;
+  county_id: string;
   lat: number;
   lng: number;
 }
 
+// Notable peaks that do NOT already exist as a POI in the dataset (peaks like Medvednica,
+// Učka, Papuk, Biokovo, Risnjak, Velebit… are represented by their nature-park/NP POIs
+// instead, so they're intentionally omitted here to avoid stacking two pins on one spot).
 export const MOUNTAINS: PlaceMarker[] = [
-  { name: "Medvednica (Sljeme)", lat: 45.8994, lng: 15.9472 },
-  { name: "Žumberačka gora", lat: 45.7833, lng: 15.4667 },
-  { name: "Strahinjščica", lat: 46.1833, lng: 15.8667 },
-  { name: "Ivanščica", lat: 46.1833, lng: 16.1167 },
-  { name: "Kalnik", lat: 46.1311, lng: 16.4633 },
-  { name: "Moslavačka gora", lat: 45.6214, lng: 16.7378 },
-  { name: "Bilogora", lat: 45.9083, lng: 16.9917 },
-  { name: "Klek", lat: 45.2581, lng: 15.1436 },
-  { name: "Risnjak", lat: 45.4303, lng: 14.6186 },
-  { name: "Snježnik", lat: 45.4419, lng: 14.5828 },
-  { name: "Učka (Vojak)", lat: 45.2914, lng: 14.2014 },
-  { name: "Sjeverni Velebit (Zavižan)", lat: 44.8142, lng: 14.9753 },
-  { name: "Vaganski vrh (Velebit)", lat: 44.5361, lng: 15.4208 },
-  { name: "Papuk (Kozjak)", lat: 45.5256, lng: 17.6017 },
-  { name: "Psunj (Brezovo Polje)", lat: 45.3986, lng: 17.3017 },
-  { name: "Dilj gora", lat: 45.2833, lng: 18.0167 },
+  { id: "mtn-strahinjscica", name: "Strahinjščica", county_id: "krapina-zagorje", lat: 46.1833, lng: 15.8667 },
+  { id: "mtn-ivanscica", name: "Ivanščica", county_id: "krapina-zagorje", lat: 46.1833, lng: 16.1167 },
+  { id: "mtn-kalnik", name: "Kalnik", county_id: "koprivnica-krizevci", lat: 46.1311, lng: 16.4633 },
+  { id: "mtn-moslavacka-gora", name: "Moslavačka gora", county_id: "sisak-moslavina", lat: 45.6214, lng: 16.7378 },
+  { id: "mtn-klek", name: "Klek", county_id: "karlovac", lat: 45.2581, lng: 15.1436 },
+  { id: "mtn-snjeznik", name: "Snježnik", county_id: "primorje-gorski-kotar", lat: 45.4419, lng: 14.5828 },
+  { id: "mtn-psunj", name: "Psunj (Brezovo Polje)", county_id: "pozega-slavonia", lat: 45.3986, lng: 17.3017 },
+  { id: "mtn-dilj-gora", name: "Dilj gora", county_id: "brod-posavina", lat: 45.2833, lng: 18.0167 },
   // Sinjal (1831 m), Croatia's highest peak: east and slightly north of Knin, on the BiH border.
-  { name: "Dinara (Sinjal)", lat: 44.046, lng: 16.414 },
-  { name: "Biokovo (Sveti Jure)", lat: 43.3414, lng: 17.0506 },
-  { name: "Vidova gora (Brač)", lat: 43.2806, lng: 16.6375 },
-  { name: "Sveti Ilija (Pelješac)", lat: 42.9972, lng: 17.1611 },
-  { name: "Mohokos", lat: 46.4172, lng: 16.3542 },
+  { id: "mtn-dinara", name: "Dinara (Sinjal)", county_id: "sibenik-knin", lat: 44.046, lng: 16.414 },
+  { id: "mtn-vidova-gora", name: "Vidova gora (Brač)", county_id: "split-dalmatia", lat: 43.2806, lng: 16.6375 },
+  { id: "mtn-sveti-ilija", name: "Sveti Ilija (Pelješac)", county_id: "dubrovnik-neretva", lat: 42.9972, lng: 17.1611 },
+  { id: "mtn-mohokos", name: "Mohokos", county_id: "medimurje", lat: 46.4172, lng: 16.3542 },
 ];
 
-export const POIS: POI[] = [
+const RAW_POIS: POI[] = [
   // ── City of Zagreb ──────────────────────────────────────────────
   {
     id: "zagreb-city-center",
@@ -575,13 +594,6 @@ export const POIS: POI[] = [
     type: "landmark",
     description: "One of Croatia's oldest wineries, Cistercian founded 1232",
   },
-  {
-    id: "papuk-pozega",
-    county_id: "pozega-slavonia",
-    name: "Papuk Highest Peak",
-    type: "mountain",
-    description: "953m summit, UNESCO Geopark territory",
-  },
 
   // ── Brod-Posavina ─────────────────────────────────────────────
   {
@@ -912,13 +924,6 @@ export const POIS: POI[] = [
     description: "Archipelago near Pula, former Tito's residence, safari",
   },
   {
-    id: "ucka-peak",
-    county_id: "istria",
-    name: "Učka Peak (Vojak)",
-    type: "mountain",
-    description: "Highest point of Istria, panorama over the Adriatic",
-  },
-  {
     id: "limski-kanal",
     county_id: "istria",
     name: "Lim Fjord",
@@ -1170,6 +1175,57 @@ export const POIS: POI[] = [
   { id: "camp-toplice-svetimartin", county_id: "medimurje", name: "Kamp Toplice Sveti Martin", type: "campsite", description: "Moderni kamp uz Terme Sveti Martin, u zelenom brežuljkastom Međimurju." },
 ];
 
+/**
+ * The seed POIs, with coordinates merged in from poiCoords.ts (filled via
+ * data-entry/poi-coordinates.csv). A POI without an entry there simply has no lat/lng and
+ * stays list-only until its coordinates are supplied.
+ */
+export const POIS: POI[] = RAW_POIS.map((p) => {
+  const coord = POI_COORDS[p.id];
+  return coord ? { ...p, lat: coord[0], lng: coord[1] } : p;
+});
+
+/**
+ * Seed POIs drawn on the map: those that have coordinates AND are not tied to a city. A POI
+ * that belongs to a city (Diocletian's Palace, the Sea Organ…) shows only inside that city's
+ * drawer — the map is for distinct destinations (campsites, parks, rivers, islands…).
+ */
+export function mappablePois(): POI[] {
+  return POIS.filter(
+    (p) =>
+      typeof p.lat === "number" &&
+      typeof p.lng === "number" &&
+      !POI_CITY_ID[p.id],
+  );
+}
+
+const poiById = Object.fromEntries(POIS.map((p) => [p.id, p]));
+
+/** Look up a single seed POI by id. */
+export function getPoi(poiId: string): POI | undefined {
+  return poiById[poiId];
+}
+
+/** Mountain peaks expressed as POIs (they already carry real coordinates). */
+export function mountainPois(): POI[] {
+  return MOUNTAINS.map((m) => ({
+    id: m.id,
+    county_id: m.county_id,
+    name: m.name,
+    type: "mountain" as const,
+    description: "",
+    lat: m.lat,
+    lng: m.lng,
+  }));
+}
+
+const mountainById = Object.fromEntries(mountainPois().map((p) => [p.id, p]));
+
+/** Look up a single mountain (as a POI) by id. */
+export function getMountainPoi(poiId: string): POI | undefined {
+  return mountainById[poiId];
+}
+
 export const POI_TYPES: Record<
   PoiType,
   { label: string; icon: string; color: string }
@@ -1412,34 +1468,8 @@ const POI_CITY_ID: Record<string, string> = {
   "senj-nehaj": "senj",
   "daruvar-spa": "daruvar",
   "krizevci-city": "krizevci",
-  // Campsites attached to a city
-  "camp-korana": "slunj",
-  "camp-vinia": "bjelovar",
-  "camp-krk-premium": "krk",
-  "camp-jezevac": "krk",
-  "camp-cikat": "mali-losinj",
-  "camp-slatina-cres": "cres",
-  "camp-poljana": "mali-losinj",
-  "camp-zaton-resort": "nin",
-  "camp-falkensteiner-zadar": "zadar",
-  "camp-avalona": "pag",
-  "camp-ljutic": "biograd",
-  "camp-phalaris": "pag",
-  "camp-kanic": "pag",
-  "camp-spiritos": "pag",
-  "camp-dunav-ilok": "ilok",
-  "camp-stobrec-split": "split",
-  "camp-galeb-omis": "omis",
-  "camp-belvedere-trogir": "trogir",
-  "camp-amadria-trogir": "trogir",
-  "camp-lanterna": "porec",
-  "camp-park-umag": "umag",
-  "camp-kanegra": "umag",
-  "camp-savudrija": "umag",
-  "camp-vestar": "rovinj",
-  "camp-valalta": "rovinj",
-  "camp-bijela-uvala": "porec",
-  "camp-val-saline": "rovinj",
+  // NOTE: campsites are deliberately NOT attached to a city — they're distinct destinations,
+  // so they stay "loose" and appear as their own pins on the map (see mappablePois).
 };
 
 const cityById = Object.fromEntries(CITIES.map((c) => [c.id, c]));

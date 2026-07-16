@@ -104,3 +104,41 @@ create policy "county_overrides_update_own" on public.county_overrides
 drop policy if exists "county_overrides_delete_own" on public.county_overrides;
 create policy "county_overrides_delete_own" on public.county_overrides
   for delete using (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 4) User POIs — places a user adds themselves (private to them). These show as
+--    extra pins on the map and can be tracked via poi_progress just like seed POIs.
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists public.user_pois (
+  id          uuid primary key,
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  county_id   text not null,
+  name        text not null,
+  type        text not null
+              check (type in ('city','mountain','lake','river','national_park',
+                              'nature','island','campsite','landmark')),
+  description text,
+  lat         double precision not null,
+  lng         double precision not null,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists user_pois_user_id_idx on public.user_pois (user_id);
+
+alter table public.user_pois enable row level security;
+
+drop policy if exists "user_pois_select_own" on public.user_pois;
+create policy "user_pois_select_own" on public.user_pois
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "user_pois_insert_own" on public.user_pois;
+create policy "user_pois_insert_own" on public.user_pois
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "user_pois_update_own" on public.user_pois;
+create policy "user_pois_update_own" on public.user_pois
+  for update using (auth.uid() = user_id);
+
+drop policy if exists "user_pois_delete_own" on public.user_pois;
+create policy "user_pois_delete_own" on public.user_pois
+  for delete using (auth.uid() = user_id);

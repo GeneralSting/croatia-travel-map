@@ -5,8 +5,8 @@
 // highlights the county AND all of its islands. Islands are colored by their county's percent
 // and clicking an island selects its county (islands belong to a county).
 
-import { useCallback, useMemo, useRef } from "react";
-import { GeoJSON } from "react-leaflet";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { GeoJSON, useMap } from "react-leaflet";
 import type { Layer, PathOptions } from "leaflet";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { COUNTIES, getGradientColor } from "@/data/croatiaData";
@@ -46,8 +46,36 @@ export default function MapShapes({
   onCountyClick,
   selectedCounty,
 }: MapShapesProps) {
+  const map = useMap();
   const countyLayers = useRef<Record<string, PathLayer>>({});
   const islandLayers = useRef<Record<string, PathLayer>>({});
+
+  // A sticky tooltip re-anchors to the cursor the instant you press the mouse (before any
+  // drag) and then fights the pan for position while dragging — both read as jitter. Leaflet
+  // keeps re-opening the tooltip during its own mousedown handling, so instead of chasing its
+  // open/close state we just hide these tooltips with a CSS class while the button is held
+  // (covers a plain click and a full drag alike) and suppress the hover highlight meanwhile.
+  const pointerDownRef = useRef(false);
+  useEffect(() => {
+    const container = map.getContainer();
+    const suppress = () => {
+      pointerDownRef.current = true;
+      container.classList.add("cx-tips-hidden");
+    };
+    const release = () => {
+      pointerDownRef.current = false;
+      container.classList.remove("cx-tips-hidden");
+    };
+    map.on("mousedown", suppress);
+    map.on("mouseup", release);
+    map.on("dragend", release); // fallback when the release happens off the map
+    return () => {
+      map.off("mousedown", suppress);
+      map.off("mouseup", release);
+      map.off("dragend", release);
+      container.classList.remove("cx-tips-hidden");
+    };
+  }, [map]);
 
   const islandIdsByCounty = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -93,6 +121,7 @@ export default function MapShapes({
   // bringToFront() on them — doing so during `mouseover` re-inserts the hovered path into the
   // DOM and stops Leaflet's matching `mouseout` from firing (the highlight + tooltip get stuck).
   const highlightCounty = useCallback((countyId: string) => {
+    if (pointerDownRef.current) return;
     countyLayers.current[countyId]?.setStyle(HIGHLIGHT);
     countyLayers.current[countyId]?.bringToFront();
     (islandIdsByCounty[countyId] ?? []).forEach((id) => {
@@ -126,6 +155,8 @@ export default function MapShapes({
         { sticky: true, className: "custom-tooltip" },
       );
       layer.on({
+        // While the button is held, skip the highlight (setStyle + bringToFront) churn; the
+        // tooltip itself is hidden via the cx-tips-hidden class.
         mouseover: () => highlightCounty(county_id),
         mouseout: () => resetCounty(county_id),
         click: () => onCountyClick(county_id),
@@ -154,6 +185,8 @@ export default function MapShapes({
       );
       // Hovering an island highlights the island together with its whole county.
       layer.on({
+        // While the button is held, skip the highlight (setStyle + bringToFront) churn; the
+        // tooltip itself is hidden via the cx-tips-hidden class.
         mouseover: () => highlightCounty(county_id),
         mouseout: () => resetCounty(county_id),
         click: () => onCountyClick(county_id),

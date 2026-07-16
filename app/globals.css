@@ -12,7 +12,7 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* ── Leaflet / map styles ───────────────────────────────────────────── */
+/* Leaflet / map styles  */
 .leaflet-container {
   background: #0c1a2e !important;
 }
@@ -46,6 +46,12 @@ body {
   display: none !important;
 }
 
+/* While the mouse button is held on the map (click or drag), hide the county/island tooltips
+   so they don't re-anchor/jitter. Toggled by MapShapes via the map container. */
+.leaflet-container.cx-tips-hidden .custom-tooltip {
+  display: none !important;
+}
+
 .leaflet-tooltip {
   pointer-events: none;
 }
@@ -70,32 +76,38 @@ body {
   background: rgba(30, 41, 59, 0.95) !important;
 }
 
-/* ── Place markers (cities / mountains) ─────────────────────────────── */
-/* City dots are clickable (they open the city panel). */
-.cx-city {
-  cursor: pointer;
-  transition:
-    fill 0.15s ease,
-    r 0.15s ease;
-}
-
-.cx-city:hover {
-  fill: #38bdf8;
-}
-
-.cx-mtn-icon {
+/* POI pins — just the type emoji (cities, mountains and other POIs); the circle only appears
+   when the pin is selected. */
+.cx-poi-icon {
   background: transparent;
   border: none;
 }
 
-.cx-tri {
-  display: block;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 11px solid #e5e7eb;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+.cx-poi-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  /* Soft shadow so the bare emoji stays legible over the map. */
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.75));
+  transition: transform 0.12s ease;
+}
+
+.cx-poi-pin:hover {
+  transform: scale(1.2);
+}
+
+/* Selected: a subtle circle with a soft, understated glow. */
+.cx-poi-pin--sel {
+  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid #38bdf8;
+  border-radius: 9999px;
+  box-shadow: 0 0 6px 1px rgba(56, 189, 248, 0.25);
+  transform: scale(1.12);
 }
 
 .leaflet-tooltip.cx-place-label {
