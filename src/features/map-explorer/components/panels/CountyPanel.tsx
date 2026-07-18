@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import {
   COUNTIES,
   POIS,
@@ -17,16 +16,7 @@ import {
   type UserPoi,
 } from "@/features/map-explorer/data";
 import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
-import { useAuth } from "@/features/auth-portal";
-import {
-  X,
-  RotateCcw,
-  SlidersHorizontal,
-  ChevronRight,
-  Plus,
-  MapPin,
-  LogIn,
-} from "lucide-react";
+import { X, RotateCcw, SlidersHorizontal, ChevronRight } from "lucide-react";
 import POICard from "./POICard";
 
 const TYPE_ORDER: PoiType[] = [
@@ -55,12 +45,6 @@ interface CountyPanelProps {
     percent: number,
     isManual: boolean,
   ) => void;
-  onAddPlace: (
-    countyId: string,
-    name: string,
-    type: PoiType,
-    description?: string,
-  ) => void;
 }
 
 export default function CountyPanel({
@@ -73,11 +57,7 @@ export default function CountyPanel({
   onPoiSelect,
   onPOIUpdate,
   onCountyOverride,
-  onAddPlace,
 }: CountyPanelProps) {
-  const { configured, user } = useAuth();
-  const loginRequired = configured && !user;
-
   const county = COUNTIES.find((c) => c.id === countyId);
   const countyPois = POIS.filter((p) => p.county_id === countyId);
   const cities = citiesForCounty(countyId);
@@ -86,20 +66,6 @@ export default function CountyPanel({
   const countyRecord = countyDataMap[countyId];
   const isManual = countyRecord?.is_manual_override;
   const [showSlider, setShowSlider] = useState(false);
-
-  // "Add a place" form state.
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<PoiType>("landmark");
-
-  const submitAddPlace = () => {
-    const name = newName.trim();
-    if (!name) return;
-    onAddPlace(countyId, name, newType);
-    setNewName("");
-    setNewType("landmark");
-    setShowAddForm(false);
-  };
 
   const autoPercent = useMemo(() => {
     if (countyPois.length === 0) return 0;
@@ -281,71 +247,6 @@ export default function CountyPanel({
 
       {/* POI list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
-        {/* Add a place */}
-        <div>
-          {loginRequired ? (
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-dashed border-white/15 text-xs text-white/50 hover:text-white hover:border-white/30 transition-colors"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              Sign in to add your own places
-            </Link>
-          ) : !showAddForm ? (
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-dashed border-white/15 text-xs text-white/60 hover:text-white hover:border-blue-500/60 hover:bg-blue-500/5 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Add a place
-            </button>
-          ) : (
-            <div className="space-y-2 p-3 rounded-xl border border-white/10 bg-slate-800/40">
-              <input
-                autoFocus
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitAddPlace()}
-                placeholder="Name (e.g. Grandma's beach)"
-                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-white/25 focus:outline-none focus:border-blue-500"
-              />
-              <select
-                value={newType}
-                onChange={(e) => setNewType(e.target.value as PoiType)}
-                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs text-white/80 focus:outline-none focus:border-blue-500"
-              >
-                {(Object.keys(POI_TYPES) as PoiType[]).map((t) => (
-                  <option key={t} value={t}>
-                    {POI_TYPES[t].icon} {POI_TYPES[t].label}
-                  </option>
-                ))}
-              </select>
-              <div className="flex gap-2">
-                <button
-                  onClick={submitAddPlace}
-                  disabled={!newName.trim()}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-white/40 text-white text-xs font-medium transition-colors"
-                >
-                  <MapPin className="w-3.5 h-3.5" />
-                  Place on map
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setNewName("");
-                  }}
-                  className="px-3 py-2 rounded-lg text-xs text-white/50 hover:text-white/80 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-              <p className="text-[10px] text-white/30">
-                Pick a type, then click the spot on the map to drop the pin.
-              </p>
-            </div>
-          )}
-        </div>
-
         {/* My places — the user's own added pins in this county */}
         {myPlaces.length > 0 && (
           <div>

@@ -1,7 +1,8 @@
 "use client";
 
-// Reports map clicks to the parent while "add a place" placement mode is active, and switches
-// the cursor to a crosshair so it's obvious the next click drops the pin. Renders nothing.
+// Reports map clicks to the parent while "add a place" placement mode is active, and tags the
+// map container with `cx-placing` so CSS can show the pin cursor (and switch it to the grab
+// cursor while the user is panning — see globals.css). Renders nothing.
 
 import { useEffect } from "react";
 import { useMap, useMapEvents } from "react-leaflet";
@@ -22,9 +23,9 @@ export default function MapClickHandler({ active, onPick }: MapClickHandlerProps
 
   useEffect(() => {
     const container = map.getContainer();
-    container.style.cursor = active ? "crosshair" : "";
+    container.classList.toggle("cx-placing", active);
     return () => {
-      container.style.cursor = "";
+      container.classList.remove("cx-placing");
     };
   }, [active, map]);
 

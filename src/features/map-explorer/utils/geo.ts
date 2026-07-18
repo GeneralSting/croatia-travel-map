@@ -4,7 +4,7 @@
 // still slightly generalised, so a 1 km cushion keeps every real coastal/island spot valid while
 // rejecting the open sea / abroad).
 
-import type { FeatureCollection, Geometry, Position } from "geojson";
+import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 
 function pointInRing(lng: number, lat: number, ring: Position[]): boolean {
   let inside = false;
@@ -89,4 +89,49 @@ export function isNearCroatia(
     if (geometryDistanceKm(lat, lng, f.geometry) <= tolKm) return true;
   }
   return false;
+}
+
+/**
+ * The county a dropped pin belongs to. Now that a place can be added anywhere (no county is
+ * chosen up front), we infer it from the coordinates: the county whose polygon contains the
+ * point, or — for a click on an island / just off the coast — the county of the containing
+ * island, falling back to the nearest county boundary. Returns null only if no county geometry
+ * is available yet.
+ */
+export function findCountyId(
+  lat: number,
+  lng: number,
+  counties: FeatureCollection | null,
+  islands: FeatureCollection | null,
+): string | null {
+  const idOf = (f: Feature): string | null =>
+    (f.properties as { county_id?: string } | null)?.county_id ?? null;
+
+  // 1) Inside a county polygon.
+  for (const f of counties?.features ?? []) {
+    if (f.geometry && pointInGeometry(lat, lng, f.geometry) && idOf(f)) {
+      return idOf(f);
+    }
+  }
+  // 2) Inside an island polygon → that island's county.
+  for (const f of islands?.features ?? []) {
+    if (f.geometry && pointInGeometry(lat, lng, f.geometry) && idOf(f)) {
+      return idOf(f);
+    }
+  }
+  // 3) Nearest county / island boundary (covers coastal clicks just outside every polygon).
+  let bestId: string | null = null;
+  let best = Infinity;
+  for (const fc of [counties, islands]) {
+    for (const f of fc?.features ?? []) {
+      const id = idOf(f);
+      if (!f.geometry || !id) continue;
+      const d = geometryDistanceKm(lat, lng, f.geometry);
+      if (d < best) {
+        best = d;
+        bestId = id;
+      }
+    }
+  }
+  return bestId;
 }

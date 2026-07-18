@@ -70,7 +70,7 @@ export default function MapControls({
       : "Filter what's shown";
 
   return (
-    <div className="absolute top-4 left-4 z-1000 w-60 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+    <div className="w-60 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden">
       {/* Header — account chip that toggles the panel */}
       <button
         onClick={() => setOpen((v) => !v)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { MapContainer, ZoomControl } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import type { FeatureCollection } from "geojson";
@@ -16,11 +16,13 @@ import {
   type PoiType,
 } from "@/features/map-explorer/data";
 import { useTravelData } from "@/features/map-explorer/hooks/useTravelData";
-import { isNearCroatia } from "@/features/map-explorer/utils/geo";
+import { isNearCroatia, findCountyId } from "@/features/map-explorer/utils/geo";
 import MapShapes from "@/features/map-explorer/components/MapShapes";
 import PlaceMarkers from "@/features/map-explorer/components/PlaceMarkers";
 import PoiMarkers from "@/features/map-explorer/components/PoiMarkers";
 import MapClickHandler from "@/features/map-explorer/components/MapClickHandler";
+import AddPlaceForm from "@/features/map-explorer/components/AddPlaceForm";
+import AddPlaceButton from "@/features/map-explorer/components/AddPlaceButton";
 import MapControls from "@/features/map-explorer/components/MapControls";
 import CountyPanel from "@/features/map-explorer/components/panels/CountyPanel";
 import CityPanel from "@/features/map-explorer/components/panels/CityPanel";
@@ -39,14 +41,12 @@ type PanelView =
   | { kind: "city"; cityId: string; countyId: string }
   | { kind: "poi"; poiId: string; countyId: string };
 
-// While the user is adding a place, we hold the form values and wait for a map click to
-// supply the coordinates.
-interface Placing {
-  countyId: string;
-  name: string;
-  type: PoiType;
-  description?: string;
-}
+// "Add a place" is a two-step flow that no longer depends on a county: first the user picks a
+// spot on the map (picking), then a popup form at that spot collects the name + type (form).
+// The county is inferred from the coordinates on confirm.
+type Placing =
+  | { status: "picking" }
+  | { status: "form"; lat: number; lng: number };
 
 export default function CroatiaMap() {
   const {
@@ -62,6 +62,11 @@ export default function CroatiaMap() {
   const [view, setView] = useState<PanelView | null>(null);
   const [placing, setPlacing] = useState<Placing | null>(null);
   const [placeError, setPlaceError] = useState(false);
+  // A county/island click bubbles to the map click, so while placing a pin we must ignore
+  // navigation clicks — otherwise the clicked county's panel would open behind the form. A ref
+  // keeps the click handlers' identity stable (no marker/shape rebinds on every placement).
+  const placingRef = useRef(false);
+  placingRef.current = placing !== null;
   const [geoJson, setGeoJson] = useState<FeatureCollection | null>(null);
   const [islands, setIslands] = useState<FeatureCollection | null>(null);
   const [outline, setOutline] = useState<FeatureCollection | null>(null);
@@ -111,6 +116,7 @@ export default function CroatiaMap() {
   }, [poiDataMap, countyDataMap]);
 
   const handleCountyClick = useCallback((countyId: string) => {
+    if (placingRef.current) return; // dropping a pin — don't open the county
     setView((prev) =>
       prev?.kind === "county" && prev.countyId === countyId
         ? null
@@ -119,6 +125,7 @@ export default function CroatiaMap() {
   }, []);
 
   const handleCityClick = useCallback((cityId: string) => {
+    if (placingRef.current) return;
     const city = getCity(cityId);
     if (!city) return;
     setView({ kind: "city", cityId, countyId: city.county_id });
@@ -136,6 +143,7 @@ export default function CroatiaMap() {
   // user's own POI record.
   const handlePoiClick = useCallback(
     (poiId: string) => {
+      if (placingRef.current) return;
       const seed = getPoi(poiId) ?? getMountainPoi(poiId);
       const countyId =
         seed?.county_id ?? userPois.find((p) => p.id === poiId)?.county_id;
@@ -145,44 +153,47 @@ export default function CroatiaMap() {
     [userPois],
   );
 
-  // Kick off "add a place": stash the form values and wait for a map click. Close any open
-  // panel so the whole map is clickable (important on mobile, where the panel is full-width).
-  const handleStartAddPlace = useCallback(
-    (countyId: string, name: string, type: PoiType, description?: string) => {
-      setView(null);
-      setPlaceError(false);
-      setPlacing({ countyId, name, type, description });
-    },
-    [],
-  );
+  // Enter placement mode. Close any open panel so the whole map is clickable (important on
+  // mobile, where the panel is full-width).
+  const startPlacing = useCallback(() => {
+    setView(null);
+    setPlaceError(false);
+    setPlacing({ status: "picking" });
+  }, []);
 
   const cancelPlacing = useCallback(() => {
     setPlacing(null);
     setPlaceError(false);
   }, []);
 
+  // First step: the user clicks a spot. Keep pins on (or within 1 km of) Croatian land — reject
+  // clicks out in the sea / abroad — then open the form bubble at that spot.
   const handlePlacePick = useCallback(
     (lat: number, lng: number) => {
-      if (!placing) return;
-      // Keep pins on (or within 1 km of) Croatian land — reject clicks out in the sea / abroad.
       if (!isNearCroatia(lat, lng, outline)) {
         setPlaceError(true);
         return;
       }
-      const created = addUserPoi({
-        county_id: placing.countyId,
-        name: placing.name,
-        type: placing.type,
-        description: placing.description,
-        lat,
-        lng,
-      });
+      setPlaceError(false);
+      setPlacing({ status: "form", lat, lng });
+    },
+    [outline],
+  );
+
+  // Second step: the form is confirmed. Infer the county from the coordinates (no county is
+  // chosen up front any more) and create the place.
+  const handleConfirmPlace = useCallback(
+    (name: string, type: PoiType) => {
+      if (placing?.status !== "form") return;
+      const { lat, lng } = placing;
+      const countyId =
+        findCountyId(lat, lng, geoJson, islands) ?? COUNTIES[0].id;
+      const created = addUserPoi({ county_id: countyId, name, type, lat, lng });
       setPlacing(null);
       setPlaceError(false);
-      if (created)
-        setView({ kind: "poi", poiId: created.id, countyId: placing.countyId });
+      if (created) setView({ kind: "poi", poiId: created.id, countyId });
     },
-    [placing, addUserPoi, outline],
+    [placing, geoJson, islands, addUserPoi],
   );
 
   // Esc cancels placement mode.
@@ -206,9 +217,8 @@ export default function CroatiaMap() {
   const activePoiIsUser =
     view?.kind === "poi" && !getPoi(view.poiId) && !getMountainPoi(view.poiId);
 
-  // A city keeps its parent county highlighted; a bare county highlights itself. While adding a
-  // place, keep the target county highlighted so it's clear where the pin will belong.
-  const selectedCounty = view?.countyId ?? placing?.countyId ?? null;
+  // A city keeps its parent county highlighted; a bare county highlights itself.
+  const selectedCounty = view?.countyId ?? null;
   const selectedCity = view?.kind === "city" ? view.cityId : null;
   const selectedPoi = view?.kind === "poi" ? view.poiId : null;
 
@@ -241,8 +251,8 @@ export default function CroatiaMap() {
             zoomControl={false}
             attributionControl={false}
           >
-            {/* Moved to the top-right so it doesn't sit under the account/filters accordion. */}
-            <ZoomControl position="topright" />
+            {/* Top-left: the add-place + account/filters cluster now lives on the right. */}
+            <ZoomControl position="topleft" />
             <MapShapes
               counties={geoJson}
               islands={islands}
@@ -263,11 +273,22 @@ export default function CroatiaMap() {
               showNames={showPoiNames}
               enabledTypes={enabledTypes}
             />
-            <MapClickHandler active={!!placing} onPick={handlePlacePick} />
+            <MapClickHandler
+              active={placing?.status === "picking"}
+              onPick={handlePlacePick}
+            />
+            {placing?.status === "form" && (
+              <AddPlaceForm
+                lat={placing.lat}
+                lng={placing.lng}
+                onConfirm={handleConfirmPlace}
+                onCancel={cancelPlacing}
+              />
+            )}
           </MapContainer>
 
-          {/* Placement banner while adding a place */}
-          {placing && (
+          {/* Placement banner while picking a spot */}
+          {placing?.status === "picking" && (
             <div
               className={`absolute top-3 left-1/2 -translate-x-1/2 z-1000 flex items-center gap-3 px-4 py-2 rounded-full text-white text-xs font-medium shadow-lg ${
                 placeError ? "bg-red-600" : "bg-blue-600"
@@ -277,7 +298,7 @@ export default function CroatiaMap() {
               <span className="max-w-[70vw] truncate">
                 {placeError
                   ? "That spot is outside Croatia — click on the map"
-                  : `Click the map to place “${placing.name}”`}
+                  : "Click the map to drop your pin"}
               </span>
               <button
                 onClick={cancelPlacing}
@@ -289,13 +310,19 @@ export default function CroatiaMap() {
             </div>
           )}
 
-          {/* Account + display filters */}
-          <MapControls
-            showNames={showPoiNames}
-            onToggleNames={() => setShowPoiNames((v) => !v)}
-            enabledTypes={enabledTypes}
-            onToggleType={toggleType}
-          />
+          {/* Top-right cluster: add-place button, then the account + display-filters accordion */}
+          <div className="absolute top-4 right-4 z-1000 flex items-start gap-2">
+            <AddPlaceButton
+              active={!!placing}
+              onToggle={() => (placing ? cancelPlacing() : startPlacing())}
+            />
+            <MapControls
+              showNames={showPoiNames}
+              onToggleNames={() => setShowPoiNames((v) => !v)}
+              enabledTypes={enabledTypes}
+              onToggleType={toggleType}
+            />
+          </div>
 
           {/* Summary drawer */}
           <SummaryDrawer
@@ -319,7 +346,6 @@ export default function CroatiaMap() {
                 onPoiSelect={handlePoiClick}
                 onPOIUpdate={updatePOI}
                 onCountyOverride={setCountyOverride}
-                onAddPlace={handleStartAddPlace}
               />
             )}
             {view.kind === "city" && (
