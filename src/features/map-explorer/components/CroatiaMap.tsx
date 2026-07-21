@@ -287,10 +287,16 @@ export default function CroatiaMap() {
             )}
           </MapContainer>
 
-          {/* Placement banner while picking a spot */}
-          {placing?.status === "picking" && (
+          {/* Placement pill while picking a spot — kept mounted so it can fade + slide out. */}
+          <div
+            className={`absolute top-3 left-1/2 -translate-x-1/2 z-1000 transition-all duration-300 ease-out ${
+              placing?.status === "picking"
+                ? "translate-y-0 opacity-100"
+                : "pointer-events-none -translate-y-2 opacity-0"
+            }`}
+          >
             <div
-              className={`absolute top-3 left-1/2 -translate-x-1/2 z-1000 flex items-center gap-3 px-4 py-2 rounded-full text-white text-xs font-medium shadow-lg ${
+              className={`flex items-center gap-3 px-4 py-2 rounded-full text-white text-xs font-medium shadow-lg transition-colors duration-200 ${
                 placeError ? "bg-red-600" : "bg-blue-600"
               }`}
             >
@@ -308,7 +314,7 @@ export default function CroatiaMap() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-          )}
+          </div>
 
           {/* Top-right cluster: add-place button, then the account + display-filters accordion */}
           <div className="absolute top-4 right-4 z-1000 flex items-start gap-2">

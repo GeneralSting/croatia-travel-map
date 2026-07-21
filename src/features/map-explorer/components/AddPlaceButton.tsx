@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/features/auth-portal";
 
 interface AddPlaceButtonProps {
@@ -62,7 +62,12 @@ export default function AddPlaceButton({ active, onToggle }: AddPlaceButtonProps
       className={`${base} ${tone}`}
       {...hoverProps}
     >
-      {active ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+      {/* A + rotated 45° reads as an ✕ — one icon, smooth rotate between add / cancel. */}
+      <Plus
+        className={`h-5 w-5 transition-transform duration-300 ${
+          active ? "rotate-45" : ""
+        }`}
+      />
       {tip}
     </button>
   );

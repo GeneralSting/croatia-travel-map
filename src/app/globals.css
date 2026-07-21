@@ -12,6 +12,11 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Outlined form fields: fade the placeholder in on focus (the floating label handles the rest). */
+.cx-field::placeholder {
+  transition: color 0.2s ease;
+}
+
 /* Leaflet / map styles  */
 .leaflet-container {
   background: #0c1a2e !important;

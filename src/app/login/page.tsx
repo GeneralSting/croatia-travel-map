@@ -1,15 +1,42 @@
 import { Suspense } from "react";
-import { LoginForm } from "@/features/auth-portal";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import {
+  AuthLayout,
+  AuthFooter,
+  AuthFormSkeleton,
+  SignInForm,
+} from "@/features/auth-portal";
 
-/**
- * Suspense is needed because the login form uses the useSearchParams() - forces the component to be rendered dynamically on client side
- * not wrapping it with Suspense will cause the loss of the static optimization or prerender the rest of the page layout
- * (marking it client-side dynamic rendering at runtime)
- */
+// The branded shell (AuthLayout) is fully static and server-rendered; only the interactive form
+// island is Suspense-wrapped (SignInForm reads useSearchParams), so it shows a field skeleton
+// instead of a blank screen while it hydrates.
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
-      <LoginForm />
-    </Suspense>
+    <AuthLayout
+      title="Welcome back"
+      description="Sign in to your Croatia Explorer account"
+      footer={
+        <>
+          <AuthFooter
+            prompt="New here?"
+            linkText="Create an account"
+            href="/register"
+          />
+          {/* You can browse the map read-only without an account. */}
+          <Link
+            href="/"
+            className="mt-4 flex items-center justify-center gap-1 text-xs text-white/40 transition-colors hover:text-white/70"
+          >
+            Just exploring? Continue to the map
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </>
+      }
+    >
+      <Suspense fallback={<AuthFormSkeleton fields={2} />}>
+        <SignInForm />
+      </Suspense>
+    </AuthLayout>
   );
 }

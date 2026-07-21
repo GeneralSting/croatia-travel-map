@@ -3,3 +3,4 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@supabase/ssr@0.12.3'
+  - react-hook-form@7.82.0

@@ -7,13 +7,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  ChevronDown,
-  ChevronUp,
-  LogOut,
-  SlidersHorizontal,
-  LogIn,
-} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, LogOut, SlidersHorizontal, LogIn } from "lucide-react";
 import { POI_TYPES, type PoiType } from "@/features/map-explorer/data";
 import { useAuth } from "@/features/auth-portal";
 
@@ -33,8 +28,14 @@ export default function MapControls({
   onToggleType,
 }: MapControlsProps) {
   const { user, configured, loading, signOut } = useAuth();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/login");
+  };
 
   const meta = (user?.user_metadata ?? {}) as Record<
     string,
@@ -104,16 +105,26 @@ export default function MapControls({
             {hiddenCount}
           </span>
         )}
-        {open ? (
-          <ChevronUp className="w-4 h-4 text-white/40 shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-white/40 shrink-0" />
-        )}
+        <ChevronDown
+          className={`w-4 h-4 text-white/40 shrink-0 transition-transform duration-300 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
-      {open && (
-        <div className="px-3 pb-3 pt-1 space-y-3">
-          {/* Account row */}
+      {/* Animated body: the grid-rows 0fr→1fr trick lets height ease open/closed. */}
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div
+          className={`min-h-0 overflow-hidden transition-opacity duration-200 ${
+            open ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="px-3 pb-3 pt-1 space-y-3">
+            {/* Account row */}
           {configured && (
             <>
               {user ? (
@@ -125,7 +136,7 @@ export default function MapControls({
                     {user.email}
                   </span>
                   <button
-                    onClick={signOut}
+                    onClick={handleSignOut}
                     className="flex items-center gap-1 text-xs text-white/60 hover:text-white px-2 py-1 rounded-lg border border-white/10 hover:border-white/25 transition-colors shrink-0"
                   >
                     <LogOut className="w-3.5 h-3.5" />
@@ -185,8 +196,9 @@ export default function MapControls({
               ))}
             </div>
           </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
