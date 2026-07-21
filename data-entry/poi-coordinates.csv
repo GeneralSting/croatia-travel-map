@@ -1,0 +1,131 @@
+county,type,id,name,lat,lng
+Zagreb County,mountain,samobor-gorje,Samoborsko Gorje,45.759400,15.688300
+Zagreb County,campsite,camp-zagreb-rakitje,Camp Zagreb (Rakitje),45.799700,15.823900
+Zagreb County,nature,turopolje,Turopolje,45.650000,16.150000
+Zagreb County,nature,zumberak,Žumberak Nature Park,45.783300,15.466700
+City of Zagreb,mountain,zagreb-medvednica,Medvednica Mountain,45.899400,15.947200
+Krapina-Zagorje,city,klanjec,Klanjec,46.049400,15.733100
+Krapina-Zagorje,city,pregrada,Pregrada,46.162800,15.751100
+Krapina-Zagorje,lake,trakoscan-lake,Trakošćan Lake,46.262500,15.944200
+Krapina-Zagorje,campsite,camp-vita-tuhelj,Camp Vita Terme Tuhelj,46.066000,15.786400
+Krapina-Zagorje,nature,sutinska-vrela,Sutinska Vrela Spa,46.115600,15.895300
+Krapina-Zagorje,landmark,kumrovec,Kumrovec Ethnological Museum,46.074400,15.676900
+Krapina-Zagorje,landmark,trakoscan-castle,Trakošćan Castle,46.253600,15.951100
+Sisak-Moslavina,campsite,camp-tradicije-cigoc,Kamp Tradicije Čigoč,45.421700,16.637500
+Sisak-Moslavina,nature,lonjsko-polje,Lonjsko Polje Nature Park,45.413100,16.745600
+Sisak-Moslavina,landmark,jasenovac-memorial,Jasenovac Memorial,45.279400,16.928300
+Karlovac County,national_park,risnjak-np,Risnjak National Park,45.430300,14.618600
+Karlovac County,river,korana-river,Korana River,45.141700,15.587800
+Karlovac County,river,mrežnica-river,Mrežnica River,45.441400,15.503600
+Karlovac County,campsite,camp-korana,Kamp Korana,44.951100,15.641700
+Karlovac County,campsite,camp-slapic,Kamp Slapić (Mrežnica),45.442200,15.498300
+Karlovac County,nature,slunj-rastoke,Rastoke (Little Plitvice),45.120800,15.586100
+Varaždin County,campsite,camp-varazdinske-toplice,Kamp Varaždinske Toplice,46.211100,16.425300
+Varaždin County,nature,varazdin-toplice,Varaždinske Toplice,46.210000,16.421400
+Koprivnica-Križevci,landmark,đurđevac-castle,Đurđevac Old Town,46.042200,17.069700
+Koprivnica-Križevci,landmark,hlebine-naive-art,Hlebine Gallery,46.155800,16.966900
+Bjelovar-Bilogora,mountain,bilogora-forest,Bilogora Hills,45.908300,16.991700
+Bjelovar-Bilogora,campsite,camp-vinia,Kamp Vinia,45.924800,16.895300
+Primorje-Gorski Kotar,island,cres-island,Cres Island,44.960000,14.410000
+Primorje-Gorski Kotar,island,losinj-island,Lošinj Island,44.570000,14.420000
+Primorje-Gorski Kotar,mountain,gorski-kotar,Gorski Kotar Highlands,45.400000,14.750000
+Primorje-Gorski Kotar,mountain,ucka-mountain,Učka Nature Park,45.291400,14.201400
+Primorje-Gorski Kotar,campsite,camp-baska-beach,Baška Beach Camping Resort,44.965600,14.747800
+Primorje-Gorski Kotar,campsite,camp-kovačine,"Camp Kovačine, Cres",44.962900,14.397000
+Primorje-Gorski Kotar,campsite,camp-krk,Camp Krk (Politin),45.021800,14.582400
+Primorje-Gorski Kotar,campsite,camp-poljana,Camping Baia Holiday Poljana,44.555500,14.442100
+Primorje-Gorski Kotar,campsite,camp-slamni,Camping Slamni,45.153300,14.617700
+Primorje-Gorski Kotar,campsite,camp-jezevac,Ježevac Premium Camping Resort,45.018800,14.566800
+Primorje-Gorski Kotar,campsite,camp-cikat,Kamp Čikat,44.535800,14.446900
+Primorje-Gorski Kotar,campsite,camp-omisalj,Kamp Omišalj,45.215800,14.542400
+Primorje-Gorski Kotar,campsite,camp-slatina-cres,Kamp Slatina,44.815600,14.346800
+Primorje-Gorski Kotar,campsite,camp-krk-premium,Krk Premium Camping Resort,45.021000,14.568300
+Primorje-Gorski Kotar,campsite,camp-san-marino-rab,San Marino Camping Resort,44.814200,14.757800
+Primorje-Gorski Kotar,nature,kvarner-gulf,Kvarner Gulf,44.900000,14.300000
+Lika-Senj,city,plitvicka-jezera-village,Plitvička Jezera Village,44.881400,15.622400
+Lika-Senj,national_park,paklenica-np,Paklenica NP,44.316700,15.433300
+Lika-Senj,national_park,plitvice-lakes,Plitvice Lakes NP,44.880600,15.616700
+Lika-Senj,national_park,velebit-north,Sjeverni Velebit NP,44.814200,14.975300
+Lika-Senj,mountain,velebit-mountain,Velebit Mountain,44.536100,15.420800
+Lika-Senj,campsite,camp-big-bear-plitvice,Big Bear Plitvice Resort,44.872500,15.495800
+Lika-Senj,campsite,camp-korana-plitvice,Camp Korana Plitvice,44.951100,15.641700
+Lika-Senj,campsite,camp-plitvice-holiday,Plitvice Holiday Resort,44.973300,15.644400
+Virovitica-Podravina,city,orahovica-park,Orahovica,45.529200,17.887500
+Virovitica-Podravina,mountain,papuk-geopark,Papuk Nature Park,45.525600,17.601700
+Virovitica-Podravina,campsite,camp-jankovac,Planinski kamp Jankovac,45.521400,17.684200
+Požega-Slavonia,campsite,camp-duboka,Eko-kamp Duboka (Velika),45.465600,17.661100
+Požega-Slavonia,landmark,kutjevo-winery,Kutjevo Winery,45.436400,17.881700
+Brod-Posavina,campsite,camp-petnja,Kamp Petnja,45.195600,17.951400
+Zadar County,city,novigrad-sea,Novigrad on the Sea,44.183300,15.550000
+Zadar County,national_park,kornati-np,Kornati National Park,43.833300,15.250000
+Zadar County,island,pag-island,Pag Island,44.450000,15.050000
+Zadar County,lake,vrana-lake,Vrana Lake,43.890600,15.579400
+Zadar County,river,zrmanja-river,Zrmanja Canyon,44.201400,15.776400
+Zadar County,campsite,camp-avalona,Aminess Avalona Camping Resort,44.334200,15.099100
+Zadar County,campsite,camp-kanic,Camp Kanić,44.595600,14.869400
+Zadar County,campsite,camp-miocic,Camp Miočić,44.258600,15.263900
+Zadar County,campsite,camp-simuni,"Camp Šimuni, Pag",44.463300,14.965600
+Zadar County,campsite,camp-stine,Camp Stine,44.271100,15.345800
+Zadar County,campsite,camp-strasko,"Camp Straško, Novalja",44.545800,14.876900
+Zadar County,campsite,camp-ljutic,Campsite Ljutić,43.931400,15.435600
+Zadar County,campsite,camp-falkensteiner-zadar,Falkensteiner Premium Camping Zadar,44.135600,15.221700
+Zadar County,campsite,camp-phalaris,Terra Park Phalaris,44.581700,14.856900
+Zadar County,campsite,camp-spiritos,Terra Park SpiritoS,44.471100,15.021100
+Zadar County,campsite,camp-zaton-resort,Zaton Holiday Resort,44.225800,15.170800
+Zadar County,nature,telascica-nature-park,Telašćica Nature Park,43.891700,15.161700
+Osijek-Baranja,campsite,camp-suza-baranje,Kamp Suza Baranje,45.785700,18.782000
+Osijek-Baranja,nature,baranja-region,Baranja Wine Region,45.750000,18.700000
+Osijek-Baranja,nature,kopacki-rit,Kopački Rit Nature Park,45.599400,18.789200
+Osijek-Baranja,landmark,bilje-castle,Bilje (Prince Eugene Castle),45.589400,18.736900
+Šibenik-Knin,city,drnis-city,Drniš,43.861700,16.151700
+Šibenik-Knin,national_park,krka-np,Krka National Park,43.801700,15.975300
+Šibenik-Knin,river,krka-river,Krka River,43.850000,15.960000
+Šibenik-Knin,campsite,camp-solaris,"Camp Solaris, Šibenik",43.699700,15.879400
+Šibenik-Knin,campsite,camp-jezera-lovisca,Kamp Jezera Lovišća (Murter),43.791700,15.611100
+Vukovar-Srijem,campsite,camp-dunav-ilok,Kamp Dunav (Ilok),45.221700,19.381400
+Split-Dalmatia,island,brac-island,Brač Island,43.300000,16.650000
+Split-Dalmatia,island,vis-island,Vis Island,43.040000,16.150000
+Split-Dalmatia,mountain,biokovo-mountain,Biokovo Nature Park,43.341400,17.050600
+Split-Dalmatia,campsite,camp-bunja-brac,Boutique Camping Bunja (Brač),43.375600,16.536900
+Split-Dalmatia,campsite,camp-skrinja,"Camp Škrinja, Brač",43.283300,16.633300
+Split-Dalmatia,campsite,camp-amadria-trogir,Camping Amadria Park Trogir,43.513300,16.216900
+Split-Dalmatia,campsite,camp-belvedere-trogir,Kamp Belvedere (Seget Vranjica),43.518600,16.204200
+Split-Dalmatia,campsite,camp-galeb-omis,Kamp Galeb (Omiš),43.439700,16.681100
+Split-Dalmatia,campsite,camp-stobrec-split,Kamp Stobreč Split,43.501400,16.525600
+Istria County,city,vrsar-town,Vrsar,45.151100,13.606700
+Istria County,national_park,brijuni-np,Brijuni National Park,44.914200,13.758300
+Istria County,campsite,camp-maravea,Aminess Planet Camping Maravea Resort,45.345800,13.541400
+Istria County,campsite,camp-sirena-novigrad,Aminess Planet Camping Sirena,45.318300,13.576900
+Istria County,campsite,camp-santa-marina,Boutique Campsite Santa Marina,45.286100,13.593600
+Istria County,campsite,camp-bi-village,"Camp Bi Village, Fažana",44.928600,13.805300
+Istria County,campsite,camp-polari,"Camp Polari, Rovinj",45.061700,13.671400
+Istria County,campsite,camp-val-saline,Camp Val Saline,45.116900,13.631100
+Istria County,campsite,camp-bijela-uvala,Camping Bijela Uvala,45.195600,13.596900
+Istria County,campsite,camp-park-umag,Camping Park Umag,45.370600,13.546900
+Istria County,campsite,camp-mon-perin,Camping Resort Mon Perin (Bale),45.011400,13.725300
+Istria County,campsite,camp-banki-green,Campsite Banki Green Istrian Village,45.241100,13.765600
+Istria County,campsite,camp-savudrija,Campsite Savudrija,45.486400,13.511100
+Istria County,campsite,camp-vestar,Campsite Veštar (Rovinj),45.053100,13.681100
+Istria County,campsite,camp-kanegra,FKK Naturist Campsite Kanegra,45.486400,13.563500
+Istria County,campsite,camp-istra-funtana,Istra Premium Camping Resort (Funtana),45.176400,13.599100
+Istria County,campsite,camp-valalta,Naturist Camping Valalta,45.121700,13.626400
+Istria County,campsite,camp-polidor,Polidor Camping Resort,45.199100,13.597800
+Istria County,campsite,camp-san-servolo,San Servolo Wellness Camping (Buje),45.414200,13.621100
+Istria County,campsite,camp-lanterna,Valamar Camping Lanterna,45.299100,13.591100
+Istria County,campsite,camp-marina-labin,Valamar Camping Marina (Labin),45.025600,14.161100
+Istria County,nature,istrian-truffles,Buzet & Truffle Country,45.411400,13.961100
+Istria County,nature,limski-kanal,Lim Fjord,45.131100,13.633300
+Istria County,landmark,groznjan-village,Grožnjan Artists Village,45.378300,13.720800
+Dubrovnik-Neretva,national_park,mljet-np,Mljet National Park,42.781700,17.381400
+Dubrovnik-Neretva,island,lastovo-island,Lastovo Island,42.750000,16.900000
+Dubrovnik-Neretva,island,mljet-island,Mljet Island,42.750000,17.530000
+Dubrovnik-Neretva,river,neretva-delta,Neretva River Delta,43.011100,17.531100
+Dubrovnik-Neretva,campsite,camp-solitudo-dubrovnik,"Camp Solitudo, Dubrovnik",42.661700,18.071100
+Dubrovnik-Neretva,campsite,camp-lavanda-orebic,Kamp Lavanda (Orebić),42.981100,17.151100
+Dubrovnik-Neretva,campsite,camp-lupis-loviste,Kamp Lupis (Lovište),43.023300,17.031400
+Dubrovnik-Neretva,campsite,camp-nevio-orebic,Kamp Nevio (Orebić),42.983300,17.161100
+Dubrovnik-Neretva,nature,konavle-valley,Konavle Valley,42.550000,18.350000
+Dubrovnik-Neretva,nature,peljesac-peninsula,Pelješac Peninsula,42.930000,17.380000
+Međimurje County,campsite,camp-toplice-svetimartin,Kamp Toplice Sveti Martin,46.505600,16.368300
+Međimurje County,nature,medimurje-wine,Međimurje Wine Road,46.450000,16.320000
+Međimurje County,nature,sveti-martin-spa,Sveti Martin on the Mura,46.502200,16.365300

@@ -1,9 +1,9 @@
 // One-time build step. Produces two local files from Natural Earth (public domain):
 //
-//   public/croatia-counties.geojson  — the 21 county shapes with REAL coastline (land only,
-//                                       sea is empty) and the major islands removed
-//   public/croatia-islands.geojson   — the ~10 biggest islands as their own features, each
-//                                       tagged with the county it sits in (county_id)
+//   public/geo/croatia-counties.geojson  — the 21 county shapes with REAL coastline (land only,
+//                                           sea is empty) and the major islands removed
+//   public/geo/croatia-islands.geojson   — the ~10 biggest islands as their own features, each
+//                                           tagged with the county it sits in (county_id)
 //
 // Why Natural Earth: the previous source stored counties as coarse administrative blobs that
 // filled the sea (so islands were fused into the land). Natural Earth's admin-1 provinces are
@@ -175,10 +175,10 @@ async function main() {
   }));
 
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  const publicDir = resolve(__dirname, "..", "public");
-  await mkdir(publicDir, { recursive: true });
-  const countiesPath = resolve(publicDir, "croatia-counties.geojson");
-  const islandsPath = resolve(publicDir, "croatia-islands.geojson");
+  const geoDir = resolve(__dirname, "..", "public", "geo");
+  await mkdir(geoDir, { recursive: true });
+  const countiesPath = resolve(geoDir, "croatia-counties.geojson");
+  const islandsPath = resolve(geoDir, "croatia-islands.geojson");
   await writeFile(countiesPath, JSON.stringify({ type: "FeatureCollection", features: countyFeatures }));
   await writeFile(islandsPath, JSON.stringify({ type: "FeatureCollection", features: islandFeatures }));
 

@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* Croatia Explorer is a full-screen dark app. */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #020617; /* slate-950 — avoids a white flash before the map mounts */
+  color: #fff;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Outlined form fields: fade the placeholder in on focus (the floating label handles the rest). */
+.cx-field::placeholder {
+  transition: color 0.2s ease;
+}
+
+/* Leaflet / map styles  */
+.leaflet-container {
+  background: #0c1a2e !important;
+}
+
+/* Clicking/dragging an interactive SVG path (county, island, city dot) otherwise draws a
+   rectangle around the shape's bounding box — from two sources: the browser focus outline,
+   and (in WebKit/Chrome) the native drag "ghost" image, because SVG paths are draggable and
+   Leaflet's `-webkit-user-drag: none` on .leaflet-container does not inherit onto them. */
+.leaflet-interactive,
+.leaflet-overlay-pane svg path {
+  outline: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.leaflet-interactive:focus {
+  outline: none;
+}
+
+.custom-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  color: white !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  font-size: 12px !important;
+}
+
+.custom-tooltip::before {
+  display: none !important;
+}
+
+/* While the mouse button is held on the map (click or drag), hide the county/island tooltips
+   so they don't re-anchor/jitter. Toggled by MapShapes via the map container. */
+.leaflet-container.cx-tips-hidden .custom-tooltip {
+  display: none !important;
+}
+
+.leaflet-tooltip {
+  pointer-events: none;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: none !important;
+  bottom: 140px !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: white !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 16px !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(30, 41, 59, 0.95) !important;
+}
+
+/* POI pins — just the type emoji (cities, mountains and other POIs); the circle only appears
+   when the pin is selected. */
+.cx-poi-icon {
+  background: transparent;
+  border: none;
+}
+
+.cx-poi-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  /* Soft shadow so the bare emoji stays legible over the map. */
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.75));
+  transition: transform 0.12s ease;
+}
+
+.cx-poi-pin:hover {
+  transform: scale(1.2);
+}
+
+/* Selected: a subtle circle with a soft, understated glow. */
+.cx-poi-pin--sel {
+  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid #38bdf8;
+  border-radius: 9999px;
+  box-shadow: 0 0 6px 1px rgba(56, 189, 248, 0.25);
+  transform: scale(1.12);
+}
+
+.leaflet-tooltip.cx-place-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+.leaflet-tooltip.cx-place-label::before {
+  display: none !important;
+}
+
+/* "Add a place" mode: a pin cursor over the whole map so it's clear the next click drops the
+   pin, switching to the grab cursor while the user is actually panning (Leaflet adds
+   .leaflet-dragging to the container). Falls back to a crosshair if the SVG cursor is unsupported. */
+.leaflet-container.cx-placing,
+.leaflet-container.cx-placing .leaflet-grab,
+.leaflet-container.cx-placing .leaflet-interactive {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 24 24' fill='%232563eb' stroke='%23ffffff' stroke-width='1.6'%3E%3Cpath d='M12 22s7-6.16 7-12a7 7 0 1 0-14 0c0 5.84 7 12 7 12z'/%3E%3Ccircle cx='12' cy='10' r='2.5' fill='%23ffffff' stroke='none'/%3E%3C/svg%3E")
+      15 28,
+    crosshair;
+}
+.leaflet-container.cx-placing.leaflet-dragging,
+.leaflet-container.cx-placing.leaflet-dragging .leaflet-grab,
+.leaflet-container.cx-placing.leaflet-dragging .leaflet-interactive {
+  cursor: grabbing;
+}
+
+/* Add-place form bubble: a dark popup instead of Leaflet's white default. */
+.leaflet-popup.cx-form-popup .leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.97);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+.leaflet-popup.cx-form-popup .leaflet-popup-content {
+  margin: 0;
+}
+.leaflet-popup.cx-form-popup .leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+/* ── County side-panel slide-in ─────────────────────────────────────── */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out forwards;
+}
