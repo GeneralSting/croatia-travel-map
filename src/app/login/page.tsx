@@ -1,6 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import {
   AuthLayout,
   AuthFooter,
@@ -8,9 +6,10 @@ import {
   SignInForm,
 } from "@/features/auth-portal";
 
-// The branded shell (AuthLayout) is fully static and server-rendered; only the interactive form
-// island is Suspense-wrapped (SignInForm reads useSearchParams), so it shows a field skeleton
-// instead of a blank screen while it hydrates.
+/**
+ * Interactive form is Suspense-wrapped (it reads the useSearchParams), so it shows a filed skeleton
+ * instead of a blank screen while it hydrated
+ */
 export default function LoginPage() {
   return (
     <AuthLayout
@@ -19,18 +18,10 @@ export default function LoginPage() {
       footer={
         <>
           <AuthFooter
-            prompt="New here?"
-            linkText="Create an account"
-            href="/register"
-          />
-          {/* You can browse the map read-only without an account. */}
-          <Link
+            prompt="Just exploring?"
+            linkText="Continue to the map"
             href="/"
-            className="mt-4 flex items-center justify-center gap-1 text-xs text-white/40 transition-colors hover:text-white/70"
-          >
-            Just exploring? Continue to the map
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          />
         </>
       }
     >

@@ -1,7 +1,7 @@
-// Next 16 renamed `middleware` → `proxy`. This runs before rendering and keeps the
-// Supabase auth session fresh by rewriting the auth cookie on each request.
-// It is a no-op until Supabase env vars are set, so the app runs fine before setup.
-
+/**
+ * Supabase auth session fresh by rewriting the auth cookie on each request
+ * It is not a no-operation until Supabase env vars are set, so the app runs fine before setup
+ */
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -10,6 +10,7 @@ export async function proxy(request: NextRequest) {
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // here not using getEnvVariable utility because it is not suited for the middleware
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
@@ -18,8 +19,13 @@ export async function proxy(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        // 1. Update the request cookies so the current route handler knows who the user is
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        // 2. Re-initialize a blank clone response containing the modified request cookies
         response = NextResponse.next({ request });
+        // 3. Write those updated tokens onto the response headers so the browser saves them permanently
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
         );
@@ -27,7 +33,7 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // Touch the session so an expired access token is refreshed and re-set as a cookie.
+  // Touch the session so an expired access token is refreshed and re-set as a cookie
   await supabase.auth.getUser();
 
   return response;

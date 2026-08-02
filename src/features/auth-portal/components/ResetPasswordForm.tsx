@@ -2,7 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
-import { Form, PasswordField, SubmitButton, FormError } from "@/components/form";
+import {
+  FormBuilder,
+  PasswordField,
+  SubmitButton,
+  FormError,
+} from "@/components/form";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   resetPasswordSchema,
@@ -27,7 +32,11 @@ export function ResetPasswordForm() {
   if (!isSupabaseConfigured) return <NotConfiguredNotice />;
 
   return (
-    <Form schema={resetPasswordSchema} onSubmit={onSubmit} className="space-y-4">
+    <FormBuilder
+      schema={resetPasswordSchema}
+      onSubmit={onSubmit}
+      className="space-y-4"
+    >
       <PasswordField
         name="password"
         label="New password"
@@ -42,6 +51,6 @@ export function ResetPasswordForm() {
       />
       <FormError />
       <SubmitButton>Update password</SubmitButton>
-    </Form>
+    </FormBuilder>
   );
 }

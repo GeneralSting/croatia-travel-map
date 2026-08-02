@@ -19,7 +19,7 @@ export function GoogleButton() {
     <button
       type="button"
       onClick={handleGoogle}
-      className="flex w-full items-center justify-center gap-2 rounded-lg bg-white py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-white/90"
+      className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-lg bg-white h-11 text-sm font-medium text-slate-900 transition-colors hover:bg-white/90"
     >
       <GoogleGlyph />
       Continue with Google

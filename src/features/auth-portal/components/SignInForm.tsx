@@ -4,12 +4,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
 import {
-  Form,
+  FormBuilder,
   TextField,
   PasswordField,
   SubmitButton,
   FormError,
-  FieldError,
 } from "@/components/form";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
@@ -19,6 +18,8 @@ import {
 import { GoogleButton } from "./GoogleButton";
 import { OrDivider } from "./OrDivider";
 import { NotConfiguredNotice } from "./NotConfiguredNotice";
+import { RegisterButton } from "./RegisterButton";
+import { FieldErrorWithLink } from "@/components/form/inputs/FieldErrorWithLink";
 
 export function SignInForm() {
   const router = useRouter();
@@ -39,8 +40,13 @@ export function SignInForm() {
   return (
     <div className="space-y-5">
       <GoogleButton />
+      <RegisterButton />
       <OrDivider />
-      <Form schema={signInSchema} onSubmit={onSubmit} className="space-y-4">
+      <FormBuilder
+        schema={signInSchema}
+        onSubmit={onSubmit}
+        className="space-y-4"
+      >
         {oauthFailed && (
           <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400">
             Google sign-in failed. Please try again.
@@ -62,23 +68,21 @@ export function SignInForm() {
             label="Password"
             icon={<Lock className="h-4 w-4" />}
             autoComplete="current-password"
-            hideError
+            hideError // Tells the field to skip rendering its default bottom error text
           />
-          {/* Fixed-height row: the password error sits to the left of the link, so the link
-              never shifts whether or not an error is showing. */}
-          <div className="mt-1.5 flex min-h-5 items-center gap-3">
-            <FieldError name="password" className="min-w-0 truncate" />
+
+          <FieldErrorWithLink name="password">
             <Link
               href="/forgot-password"
-              className="ml-auto shrink-0 text-xs text-blue-400 transition-colors hover:text-blue-300"
+              className="text-xs text-blue-400 transition-colors hover:text-blue-300"
             >
               Forgot password?
             </Link>
-          </div>
+          </FieldErrorWithLink>
         </div>
         <FormError />
         <SubmitButton>Login</SubmitButton>
-      </Form>
+      </FormBuilder>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
 import {
-  Form,
+  FormBuilder,
   TextField,
   PasswordField,
   SubmitButton,
@@ -53,7 +53,11 @@ export function RegisterForm() {
     <div className="space-y-5">
       <GoogleButton />
       <OrDivider />
-      <Form schema={registerSchema} onSubmit={onSubmit} className="space-y-4">
+      <FormBuilder
+        schema={registerSchema}
+        onSubmit={onSubmit}
+        className="space-y-4"
+      >
         <TextField
           name="email"
           label="Email"
@@ -70,7 +74,7 @@ export function RegisterForm() {
         />
         <FormError />
         <SubmitButton>Create account</SubmitButton>
-      </Form>
+      </FormBuilder>
     </div>
   );
 }

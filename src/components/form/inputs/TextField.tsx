@@ -33,11 +33,9 @@ export function TextField({
         id={name}
         type={type}
         autoComplete={autoComplete}
-        // A real placeholder drives the floating label (`:placeholder-shown`); it stays invisible
-        // until focus, then fades in — matching MUI's outlined field.
         placeholder={placeholder ?? " "}
         {...register(name)}
-        className={`cx-field peer w-full rounded-lg border bg-slate-900 py-3 pr-3.5 text-sm text-white outline-none transition-colors placeholder:text-transparent focus:placeholder:text-white/30 ${
+        className={`cx-field peer h-12 w-full rounded-xl border bg-slate-900 pr-3.5 text-sm text-white outline-none transition-colors placeholder:text-transparent focus:placeholder:text-white/30 ${
           icon ? "pl-9" : "pl-3.5"
         } ${
           error

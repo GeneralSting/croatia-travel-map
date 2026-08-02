@@ -3,8 +3,10 @@
 import { useFormContext } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 
-// Submit button that disables + shows a spinner while the form is submitting (reads
-// react-hook-form's isSubmitting from context).
+/**
+ * Submit button that disables + shows a spinenr while the form is submitting
+ * Reads react-hook-form+s isSubmitting from context
+ */
 export function SubmitButton({
   children,
   className,
@@ -20,7 +22,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={isSubmitting}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-blue-500 disabled:opacity-60 ${
+      className={`cursor-pointer flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 h-11 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-blue-500 disabled:opacity-60 ${
         className ?? ""
       }`}
     >

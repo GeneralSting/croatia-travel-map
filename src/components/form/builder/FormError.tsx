@@ -2,8 +2,10 @@
 
 import { useFormContext } from "react-hook-form";
 
-// Renders the form-level ("root") error set when a submit handler throws. Field-level errors are
-// rendered inline by the fields themselves.
+/**
+ * Renders the form-level error set when a submit handler throws. Field-level errors are
+ * rendered inline by the fields themselves
+ */
 export function FormError() {
   const {
     formState: { errors },

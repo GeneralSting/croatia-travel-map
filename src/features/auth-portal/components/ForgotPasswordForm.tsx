@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Mail } from "lucide-react";
-import { Form, TextField, SubmitButton, FormError } from "@/components/form";
+import {
+  FormBuilder,
+  TextField,
+  SubmitButton,
+  FormError,
+} from "@/components/form";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   forgotPasswordSchema,
@@ -10,6 +15,7 @@ import {
 } from "@/features/auth-portal/schemas";
 import { AuthNotice } from "./AuthNotice";
 import { NotConfiguredNotice } from "./NotConfiguredNotice";
+import { AUTH_PATHS } from "@/lib/data";
 
 export function ForgotPasswordForm() {
   const [sent, setSent] = useState(false);
@@ -17,9 +23,10 @@ export function ForgotPasswordForm() {
   const onSubmit = async (values: ForgotPasswordValues) => {
     const redirectBase = window.location.origin;
     const next = encodeURIComponent("/reset-password");
+    const redirectToUrl = `${redirectBase}${AUTH_PATHS.CALLBACK}?next=${next}`;
     const { error } = await createClient().auth.resetPasswordForEmail(
       values.email,
-      { redirectTo: `${redirectBase}/auth/callback?next=${next}` },
+      { redirectTo: redirectToUrl },
     );
     if (error) throw new Error(error.message);
     setSent(true);
@@ -32,7 +39,7 @@ export function ForgotPasswordForm() {
     );
 
   return (
-    <Form
+    <FormBuilder
       schema={forgotPasswordSchema}
       onSubmit={onSubmit}
       className="space-y-4"
@@ -47,6 +54,6 @@ export function ForgotPasswordForm() {
       />
       <FormError />
       <SubmitButton>Send reset link</SubmitButton>
-    </Form>
+    </FormBuilder>
   );
 }

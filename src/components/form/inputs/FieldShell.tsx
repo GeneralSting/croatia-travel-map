@@ -1,11 +1,5 @@
 "use client";
 
-// Shared frame for the MUI-style outlined fields: an optional leading icon, the input (passed as
-// children, carrying the `peer` class), a floating label, and the error line. The label rests
-// inside the field and floats up onto the border on focus or once the field has a value — driven
-// purely by the input's `:placeholder-shown` state (both float conditions set the same target, so
-// it's independent of Tailwind's variant order).
-
 import type { ReactNode } from "react";
 
 interface FieldShellProps {
@@ -13,11 +7,17 @@ interface FieldShellProps {
   label: string;
   icon?: ReactNode;
   error?: string;
-  // Colour the field for the error but don't render the message here (it's shown elsewhere).
   hideError?: boolean;
   children: ReactNode;
 }
 
+/**
+ * Shared frame for the MUI-style outlined fields: an optional leading icon, the input
+ * passed as children, carrying the 'peer' class, a floating label and the error line
+ * The label rests inside the field and floats up onto the border on focus or once the field has a value
+ * driven purely by the input's `:placeholder-shown` state (both float conditions set the same target,
+ * so it's independent of Tailwind's variant order)
+ */
 export function FieldShell({
   name,
   label,
