@@ -4,9 +4,14 @@ export { AuthProvider } from "@/features/auth-portal/components/AuthProvider";
 export { useAuth } from "@/features/auth-portal/hooks/useAuth";
 
 // Shared static shell.
-export { AuthLayout } from "@/features/auth-portal/components/AuthLayout";
+export { AuthCard } from "@/features/auth-portal/components/AuthCard";
 export { AuthFooter } from "@/features/auth-portal/components/AuthFooter";
-export { AuthFormSkeleton } from "@/features/auth-portal/components/AuthFormSkeleton";
+export {
+  FieldSkeleton,
+  ButtonSkeleton,
+  DividerSkeleton,
+  FooterSkeleton,
+} from "@/features/auth-portal/components/Skeletons";
 
 // One small form per page.
 export { SignInForm } from "@/features/auth-portal/components/SignInForm";

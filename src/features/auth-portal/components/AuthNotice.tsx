@@ -1,6 +1,7 @@
 // Success / info panel shown in place of a form after submit (e.g. "check your email"), with a
 // link back to sign in.
 
+import { AUTH_PATHS } from "@/lib/data";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -11,7 +12,7 @@ export function AuthNotice({ children }: { children: ReactNode }) {
         {children}
       </div>
       <Link
-        href="/login"
+        href={AUTH_PATHS.LOGIN}
         className="block text-center text-sm font-medium text-blue-400 transition-colors hover:text-blue-300"
       >
         Back to sign in

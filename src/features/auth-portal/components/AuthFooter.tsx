@@ -1,6 +1,3 @@
-// The bottom of an auth card: a labelled divider plus the cross-link to the sibling form
-// (login ↔ register ↔ reset). Static, so it renders with the shell.
-
 import Link from "next/link";
 
 interface AuthFooterProps {
@@ -9,6 +6,7 @@ interface AuthFooterProps {
   href: string;
 }
 
+// bottom of an auth card: labelled divider plus the cross-link to the sibling form
 export function AuthFooter({ prompt, linkText, href }: AuthFooterProps) {
   return (
     <div className="mt-6">
