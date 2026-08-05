@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { AuthContext } from "@/features/auth-portal/components/AuthProvider";
 
-/** Read the current auth state (user, loading, configured, signOut). */
+// Read the current auth state (user, loading, configured, signOut)
 export const useAuth = () => {
   const context = useContext(AuthContext);
 

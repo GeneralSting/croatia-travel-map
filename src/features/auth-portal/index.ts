@@ -3,10 +3,6 @@
 export { AuthProvider } from "@/features/auth-portal/components/AuthProvider";
 export { useAuth } from "@/features/auth-portal/hooks/useAuth";
 
-// NOTE: GuestGuard is intentionally NOT re-exported here. It's a server component that imports
-// next/headers; this barrel is also consumed by client code (AuthProvider), so re-exporting it
-// would pull server-only modules into the client bundle. Import it from its own path in pages.
-
 // Shared static shell.
 export { AuthCard } from "@/features/auth-portal/components/AuthCard";
 export { AuthFooter } from "@/features/auth-portal/components/AuthFooter";

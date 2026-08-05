@@ -19,17 +19,28 @@ import { NotConfiguredNotice } from "./NotConfiguredNotice";
 import { APP_PATHS, AUTH_PATHS } from "@/lib/data";
 import { AuthFormSkeletonInline } from "./Skeletons";
 
-// `checking` while we confirm a recovery session exists, `ready` once it does, `invalid` when the
-// page was opened directly (no session) instead of through the emailed reset link.
+/**
+ * checking - while we confirm a recovery session exists
+ * ready - once it does
+ * invalid - when the page was opened directly (no session)
+ */
 type SessionState = "checking" | "ready" | "invalid";
 
 export function ResetPasswordForm() {
   const router = useRouter();
   const [sessionState, setSessionState] = useState<SessionState>("checking");
 
-  // A valid recovery session is only established by clicking the emailed link (which passes
-  // through /auth/callback → exchangeCodeForSession). Without it, updateUser would just fail — so
-  // we check up front and show guidance instead of a dead form.
+  const onSubmit = async (values: ResetPasswordValues) => {
+    // The recovery link already established a session via /auth/callback, so we can update the password directly
+    const { error } = await createClient().auth.updateUser({
+      password: values.password,
+    });
+    if (error) throw new Error(error.message);
+    router.push(APP_PATHS.HOME);
+    router.refresh();
+  };
+
+  // A valid recovery session is only established by clicking the emailed link (passes through /auth/callback -> exchangeCodeForSession)
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     const supabase = createClient();
@@ -49,17 +60,6 @@ export function ResetPasswordForm() {
       sub.subscription.unsubscribe();
     };
   }, []);
-
-  const onSubmit = async (values: ResetPasswordValues) => {
-    // The recovery link already established a session via /auth/callback, so we can update the
-    // password directly.
-    const { error } = await createClient().auth.updateUser({
-      password: values.password,
-    });
-    if (error) throw new Error(error.message);
-    router.push(APP_PATHS.HOME);
-    router.refresh();
-  };
 
   if (!isSupabaseConfigured) return <NotConfiguredNotice />;
   if (sessionState === "checking") return <AuthFormSkeletonInline fields={2} />;

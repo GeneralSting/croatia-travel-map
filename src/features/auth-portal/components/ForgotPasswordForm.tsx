@@ -35,7 +35,7 @@ export function ForgotPasswordForm() {
   if (!isSupabaseConfigured) return <NotConfiguredNotice />;
   if (sent)
     return (
-      <AuthNotice>Password reset link sent — check your email.</AuthNotice>
+      <AuthNotice>Password reset link sent - check your email.</AuthNotice>
     );
 
   return (

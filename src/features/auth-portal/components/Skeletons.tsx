@@ -1,8 +1,6 @@
 // Reusable skeleton primitives for the auth loading states. Each matches the geometry of the real element
 
-/**
- * a field at rest is just the bordered input box - the floating label sits inside it, so there's no separate label row
- */
+// a field at rest is just the bordered input box - the floating label sits inside it, so there's no separate label row
 export function FieldSkeleton() {
   return (
     <div className="h-12 w-full animate-pulse rounded-lg border border-white/5 bg-white/5" />
@@ -25,8 +23,7 @@ export function DividerSkeleton() {
   );
 }
 
-// Client-side placeholder rendered while a form confirms auth state at runtime (e.g. the reset
-// page checking for a recovery session). Composes the primitives into N fields + a submit button.
+// Client-side placeholder rendered while a form confirms auth state at runtime
 export function AuthFormSkeletonInline({ fields = 1 }: { fields?: number }) {
   return (
     <div className="space-y-4">

@@ -1,9 +1,10 @@
-// Shown in place of any auth form when Supabase env vars are missing, so the page degrades
-// gracefully instead of throwing on an empty client.
-
 import Link from "next/link";
 import { APP_PATHS } from "@/lib/data";
 
+/**
+ * Shown in place of any auth form when Supabase env vars are missing, so the page degrades
+ * gracefully instead of throwing on an empty client
+ */
 export function NotConfiguredNotice() {
   return (
     <div className="space-y-4">

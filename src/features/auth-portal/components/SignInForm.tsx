@@ -61,8 +61,7 @@ export function SignInForm() {
           icon={<Mail className="h-4 w-4" />}
           autoComplete="email"
         />
-        {/* Group so the error/forgot row sits 6px under the input (a normal field-error gap),
-            not the form's 16px stack gap. */}
+        {/* Group so the error/forgot row sits 6px under the input (a normal field-error gap) */}
         <div>
           <PasswordField
             name="password"
