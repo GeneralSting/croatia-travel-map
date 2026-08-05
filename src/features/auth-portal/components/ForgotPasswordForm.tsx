@@ -22,7 +22,7 @@ export function ForgotPasswordForm() {
 
   const onSubmit = async (values: ForgotPasswordValues) => {
     const redirectBase = window.location.origin;
-    const next = encodeURIComponent("/reset-password");
+    const next = encodeURIComponent(AUTH_PATHS.RESET_PASSWORD);
     const redirectToUrl = `${redirectBase}${AUTH_PATHS.CALLBACK}?next=${next}`;
     const { error } = await createClient().auth.resetPasswordForEmail(
       values.email,

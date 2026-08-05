@@ -1107,9 +1107,9 @@ const RAW_POIS: POI[] = [
  * data-entry/poi-coordinates.csv). A POI without an entry there simply has no lat/lng and
  * stays list-only until its coordinates are supplied.
  */
-export const POIS: POI[] = RAW_POIS.map((p) => {
-  const coord = POI_COORDS[p.id];
-  return coord ? { ...p, lat: coord[0], lng: coord[1] } : p;
+export const POIS: POI[] = RAW_POIS.map((poi) => {
+  const coord = POI_COORDS[poi.id];
+  return coord ? { ...poi, lat: coord[0], lng: coord[1] } : poi;
 });
 export const POI_TYPES: Record<
   PoiType,

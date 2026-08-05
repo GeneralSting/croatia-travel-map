@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, LogOut, SlidersHorizontal, LogIn } from "lucide-react";
 import { POI_TYPES, type PoiType } from "@/features/map-explorer/data";
 import { useAuth } from "@/features/auth-portal";
+import { AUTH_PATHS } from "@/lib/data";
 
 const TYPE_ORDER = Object.keys(POI_TYPES) as PoiType[];
 
@@ -34,7 +35,7 @@ export default function MapControls({
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/login");
+    router.push(AUTH_PATHS.LOGIN);
   };
 
   const meta = (user?.user_metadata ?? {}) as Record<
@@ -50,12 +51,12 @@ export default function MapControls({
     (fullName || user?.email || "?")
       .trim()
       .split(/\s+/)
-      .map((s) => s[0])
+      .map((word) => word[0])
       .slice(0, 2)
       .join("")
       .toUpperCase() || "?";
 
-  const hiddenCount = TYPE_ORDER.filter((t) => !enabledTypes[t]).length;
+  const hiddenCount = TYPE_ORDER.filter((type) => !enabledTypes[type]).length;
 
   const primary = user
     ? fullName || "Account"
@@ -145,7 +146,7 @@ export default function MapControls({
                 </div>
               ) : (
                 <Link
-                  href="/login"
+                  href={AUTH_PATHS.LOGIN}
                   className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
                 >
                   <LogIn className="w-3.5 h-3.5" />
@@ -175,22 +176,22 @@ export default function MapControls({
               Show types
             </p>
             <div className="space-y-1.5">
-              {TYPE_ORDER.map((t) => (
+              {TYPE_ORDER.map((type) => (
                 <label
-                  key={t}
+                  key={type}
                   className="flex items-center gap-2.5 cursor-pointer select-none"
                 >
                   <input
                     type="checkbox"
-                    checked={enabledTypes[t]}
-                    onChange={() => onToggleType(t)}
+                    checked={enabledTypes[type]}
+                    onChange={() => onToggleType(type)}
                     className="w-3.5 h-3.5 accent-blue-500"
                   />
                   <span className="text-sm leading-none">
-                    {POI_TYPES[t].icon}
+                    {POI_TYPES[type].icon}
                   </span>
                   <span className="text-xs text-white/70">
-                    {POI_TYPES[t].label}
+                    {POI_TYPES[type].label}
                   </span>
                 </label>
               ))}

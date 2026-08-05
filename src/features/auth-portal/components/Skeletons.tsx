@@ -25,6 +25,19 @@ export function DividerSkeleton() {
   );
 }
 
+// Client-side placeholder rendered while a form confirms auth state at runtime (e.g. the reset
+// page checking for a recovery session). Composes the primitives into N fields + a submit button.
+export function AuthFormSkeletonInline({ fields = 1 }: { fields?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: fields }, (_, index) => (
+        <FieldSkeleton key={index} />
+      ))}
+      <ButtonSkeleton />
+    </div>
+  );
+}
+
 // Matches AuthFooter (labelled divider + centred link)
 export function FooterSkeleton() {
   return (

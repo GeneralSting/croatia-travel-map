@@ -75,36 +75,36 @@ export default function PoiMarkers({
   useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
 
   const markers = useMemo<MarkerDatum[]>(() => {
-    const seed = [...mappablePois(), ...mountainPois()].map((p) => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      lat: p.lat as number,
-      lng: p.lng as number,
+    const seed = [...mappablePois(), ...mountainPois()].map((poi) => ({
+      id: poi.id,
+      name: poi.name,
+      type: poi.type,
+      lat: poi.lat as number,
+      lng: poi.lng as number,
     }));
-    const user = userPois.map((p) => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      lat: p.lat,
-      lng: p.lng,
+    const user = userPois.map((poi) => ({
+      id: poi.id,
+      name: poi.name,
+      type: poi.type,
+      lat: poi.lat,
+      lng: poi.lng,
     }));
     return [...seed, ...user];
   }, [userPois]);
 
   const visible = markers.filter(
-    (m) => enabledTypes[m.type] && zoom >= minZoomFor(m.type),
+    (marker) => enabledTypes[marker.type] && zoom >= minZoomFor(marker.type),
   );
 
   return (
     <>
-      {visible.map((m) => (
+      {visible.map((marker) => (
         <Marker
-          key={m.id}
-          position={[m.lat, m.lng]}
-          icon={poiIcon(m.type, selectedPoi === m.id)}
-          zIndexOffset={selectedPoi === m.id ? 1000 : 0}
-          eventHandlers={{ click: () => onPoiClick(m.id) }}
+          key={marker.id}
+          position={[marker.lat, marker.lng]}
+          icon={poiIcon(marker.type, selectedPoi === marker.id)}
+          zIndexOffset={selectedPoi === marker.id ? 1000 : 0}
+          eventHandlers={{ click: () => onPoiClick(marker.id) }}
         >
           {/* key forces Leaflet to rebind when the permanent/hover mode changes */}
           <Tooltip
@@ -114,7 +114,7 @@ export default function PoiMarkers({
             offset={[14, 0]}
             className="cx-place-label"
           >
-            {m.name}
+            {marker.name}
           </Tooltip>
         </Marker>
       ))}

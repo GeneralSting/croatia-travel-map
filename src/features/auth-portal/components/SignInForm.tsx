@@ -20,6 +20,7 @@ import { OrDivider } from "./OrDivider";
 import { NotConfiguredNotice } from "./NotConfiguredNotice";
 import { RegisterButton } from "./RegisterButton";
 import { FieldErrorWithLink } from "@/components/form/inputs/FieldErrorWithLink";
+import { APP_PATHS, AUTH_PATHS } from "@/lib/data";
 
 export function SignInForm() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export function SignInForm() {
       password: values.password,
     });
     if (error) throw new Error(error.message);
-    router.push("/");
+    router.push(APP_PATHS.HOME);
     router.refresh();
   };
 
@@ -73,7 +74,7 @@ export function SignInForm() {
 
           <FieldErrorWithLink name="password">
             <Link
-              href="/forgot-password"
+              href={AUTH_PATHS.FORGOT_PASSWORD}
               className="text-xs text-blue-400 transition-colors hover:text-blue-300"
             >
               Forgot password?

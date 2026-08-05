@@ -53,15 +53,18 @@ export default function CityPanel({
     cityPois.forEach((poi) => {
       (groups[poi.type] ??= []).push(poi);
     });
-    return TYPE_ORDER.filter((t) => groups[t]).map((t) => ({ type: t, pois: groups[t] }));
+    return TYPE_ORDER.filter((poiType) => groups[poiType]).map((poiType) => ({
+      type: poiType,
+      pois: groups[poiType],
+    }));
   }, [cityPois]);
 
   if (!city) return null;
 
-  const county = COUNTIES.find((c) => c.id === city.county_id);
+  const county = COUNTIES.find((county) => county.id === city.county_id);
   const percent = getCityPercent(cityId, poiDataMap);
   const visitedCount = cityPois.filter(
-    (p) => poiDataMap[p.id]?.status === "visited",
+    (poi) => poiDataMap[poi.id]?.status === "visited",
   ).length;
   const fillColor = getGradientColor(percent);
   const showImage = !imgError;

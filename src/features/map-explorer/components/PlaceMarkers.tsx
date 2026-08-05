@@ -49,19 +49,21 @@ export default function PlaceMarkers({
 
   if (!show) return null;
 
-  const visibleCities = CITIES.filter((c) => zoom >= CITY_MIN_ZOOM[c.importance]);
+  const visibleCities = CITIES.filter(
+    (city) => zoom >= CITY_MIN_ZOOM[city.importance],
+  );
 
   return (
     <>
-      {visibleCities.map((c) => {
-        const isSelected = selectedCity === c.id;
+      {visibleCities.map((city) => {
+        const isSelected = selectedCity === city.id;
         return (
           <Marker
-            key={c.id}
-            position={[c.lat, c.lng]}
+            key={city.id}
+            position={[city.lat, city.lng]}
             icon={cityIcon(isSelected)}
             zIndexOffset={isSelected ? 1000 : 0}
-            eventHandlers={{ click: () => onCityClick(c.id) }}
+            eventHandlers={{ click: () => onCityClick(city.id) }}
           >
             {/* key forces Leaflet to rebind when the permanent/hover mode changes */}
             <Tooltip
@@ -71,7 +73,7 @@ export default function PlaceMarkers({
               offset={[14, 0]}
               className="cx-place-label"
             >
-              {c.name}
+              {city.name}
             </Tooltip>
           </Marker>
         );

@@ -1,11 +1,12 @@
 import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
+import { AUTH_PATHS } from "@/lib/data";
 
 export function RegisterButton() {
   const router = useRouter();
 
   const handleNavigate = () => {
-    router.push("/register");
+    router.push(AUTH_PATHS.REGISTER);
   };
 
   return (

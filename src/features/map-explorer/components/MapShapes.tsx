@@ -37,7 +37,7 @@ type PathLayer = Layer & {
   bringToFront: () => void;
 };
 
-const countyNameById = Object.fromEntries(COUNTIES.map((c) => [c.id, c.name]));
+const countyNameById = Object.fromEntries(COUNTIES.map((county) => [county.id, county.name]));
 
 export default function MapShapes({
   counties,
@@ -79,8 +79,8 @@ export default function MapShapes({
 
   const islandIdsByCounty = useMemo(() => {
     const map: Record<string, string[]> = {};
-    islands?.features.forEach((f) => {
-      const { island_id, county_id } = f.properties as IslandProps;
+    islands?.features.forEach((feature) => {
+      const { island_id, county_id } = feature.properties as IslandProps;
       (map[county_id] ??= []).push(island_id);
     });
     return map;

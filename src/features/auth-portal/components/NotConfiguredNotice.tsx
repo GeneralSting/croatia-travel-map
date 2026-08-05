@@ -2,6 +2,7 @@
 // gracefully instead of throwing on an empty client.
 
 import Link from "next/link";
+import { APP_PATHS } from "@/lib/data";
 
 export function NotConfiguredNotice() {
   return (
@@ -11,7 +12,7 @@ export function NotConfiguredNotice() {
         <code className="text-white/80">.env.local</code> and restart.
       </p>
       <Link
-        href="/"
+        href={APP_PATHS.HOME}
         className="block text-center text-sm text-blue-400 hover:text-blue-300"
       >
         ← Back to the map

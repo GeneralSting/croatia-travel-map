@@ -58,11 +58,11 @@ export default function CountyPanel({
   onPOIUpdate,
   onCountyOverride,
 }: CountyPanelProps) {
-  const county = COUNTIES.find((c) => c.id === countyId);
-  const countyPois = POIS.filter((p) => p.county_id === countyId);
+  const county = COUNTIES.find((county) => county.id === countyId);
+  const countyPois = POIS.filter((poi) => poi.county_id === countyId);
   const cities = citiesForCounty(countyId);
   const loosePois = looseCountyPois(countyId);
-  const myPlaces = userPois.filter((p) => p.county_id === countyId);
+  const myPlaces = userPois.filter((poi) => poi.county_id === countyId);
   const countyRecord = countyDataMap[countyId];
   const isManual = countyRecord?.is_manual_override;
   const [showSlider, setShowSlider] = useState(false);
@@ -70,7 +70,7 @@ export default function CountyPanel({
   const autoPercent = useMemo(() => {
     if (countyPois.length === 0) return 0;
     const visited = countyPois.filter(
-      (p) => poiDataMap[p.id]?.status === "visited",
+      (poi) => poiDataMap[poi.id]?.status === "visited",
     ).length;
     return Math.round((visited / countyPois.length) * 100);
   }, [countyPois, poiDataMap]);
@@ -86,17 +86,17 @@ export default function CountyPanel({
       if (!groups[poi.type]) groups[poi.type] = [];
       groups[poi.type].push(poi);
     });
-    return TYPE_ORDER.filter((t) => groups[t]).map((t) => ({
-      type: t,
-      pois: groups[t],
+    return TYPE_ORDER.filter((poiType) => groups[poiType]).map((poiType) => ({
+      type: poiType,
+      pois: groups[poiType],
     }));
   }, [loosePois]);
 
   const visitedCount = countyPois.filter(
-    (p) => poiDataMap[p.id]?.status === "visited",
+    (poi) => poiDataMap[poi.id]?.status === "visited",
   ).length;
   const wantCount = countyPois.filter(
-    (p) => poiDataMap[p.id]?.status === "want_to_visit",
+    (poi) => poiDataMap[poi.id]?.status === "want_to_visit",
   ).length;
   const fillColor = getGradientColor(displayPercent);
 
@@ -258,18 +258,18 @@ export default function CountyPanel({
               <div className="flex-1 h-px bg-white/5" />
             </div>
             <div className="space-y-2">
-              {myPlaces.map((p) => (
+              {myPlaces.map((poi) => (
                 <button
-                  key={p.id}
-                  onClick={() => onPoiSelect(p.id)}
+                  key={poi.id}
+                  onClick={() => onPoiSelect(poi.id)}
                   className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-slate-800/40 hover:bg-slate-800/80 hover:border-white/20 transition-all text-left"
                 >
-                  <span className="text-lg shrink-0">{POI_TYPES[p.type].icon}</span>
+                  <span className="text-lg shrink-0">{POI_TYPES[poi.type].icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white leading-tight truncate">
-                      {p.name}
+                      {poi.name}
                     </p>
-                    <p className="text-[10px] text-white/40 mt-0.5">{POI_TYPES[p.type].label}</p>
+                    <p className="text-[10px] text-white/40 mt-0.5">{POI_TYPES[poi.type].label}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/30 shrink-0" />
                 </button>

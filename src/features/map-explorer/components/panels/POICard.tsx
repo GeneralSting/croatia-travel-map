@@ -10,6 +10,7 @@ import {
 } from "@/features/map-explorer/data";
 import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
 import { useAuth } from "@/features/auth-portal";
+import { AUTH_PATHS } from "@/lib/data";
 import {
   Star,
   ChevronDown,
@@ -72,7 +73,7 @@ export default function POICard({ poi, userData, onUpdate }: POICardProps) {
 
   const poiType = POI_TYPES[poi.type] || POI_TYPES.landmark;
   const currentStatus =
-    STATUS_OPTIONS.find((s) => s.value === localData.status) ||
+    STATUS_OPTIONS.find((option) => option.value === localData.status) ||
     STATUS_OPTIONS[0];
 
   const handleStatusChange = async (newStatus: POIStatus) => {
@@ -139,7 +140,7 @@ export default function POICard({ poi, userData, onUpdate }: POICardProps) {
 
           {loginRequired ? (
             <Link
-              href="/login"
+              href={AUTH_PATHS.LOGIN}
               className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-white/10 bg-slate-800/60 text-xs text-white/60 hover:text-white hover:border-white/25 transition-colors"
             >
               <LogIn className="w-3.5 h-3.5" />
@@ -153,17 +154,17 @@ export default function POICard({ poi, userData, onUpdate }: POICardProps) {
               Status
             </p>
             <div className="flex gap-1.5">
-              {STATUS_OPTIONS.map((s) => (
+              {STATUS_OPTIONS.map((option) => (
                 <button
-                  key={s.value}
-                  onClick={() => handleStatusChange(s.value)}
+                  key={option.value}
+                  onClick={() => handleStatusChange(option.value)}
                   className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
-                    localData.status === s.value
-                      ? `${s.bg} ${s.text} ${s.border || "border-slate-600"} opacity-100`
+                    localData.status === option.value
+                      ? `${option.bg} ${option.text} ${option.border || "border-slate-600"} opacity-100`
                       : "bg-slate-800 text-white/40 border-white/5 hover:border-white/20"
                   }`}
                 >
-                  {s.label}
+                  {option.label}
                 </button>
               ))}
             </div>

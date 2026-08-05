@@ -75,9 +75,9 @@ export default function AddPlaceForm({ lat, lng, onConfirm, onCancel }: AddPlace
             onChange={(e) => setType(e.target.value as PoiType)}
             className="w-full rounded-lg border border-white/10 bg-slate-800 px-2.5 py-1.5 text-xs text-white/80 focus:border-blue-500 focus:outline-none"
           >
-            {TYPE_ORDER.map((t) => (
-              <option key={t} value={t}>
-                {POI_TYPES[t].icon} {POI_TYPES[t].label}
+            {TYPE_ORDER.map((poiType) => (
+              <option key={poiType} value={poiType}>
+                {POI_TYPES[poiType].icon} {POI_TYPES[poiType].label}
               </option>
             ))}
           </select>

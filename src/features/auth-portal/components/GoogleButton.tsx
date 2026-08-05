@@ -4,6 +4,7 @@
 // exchange the code for a session.
 
 import { createClient } from "@/lib/supabase/client";
+import { AUTH_PATHS } from "@/lib/data";
 
 export function GoogleButton() {
   const handleGoogle = async () => {
@@ -11,7 +12,7 @@ export function GoogleButton() {
       typeof window !== "undefined" ? window.location.origin : "";
     await createClient().auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${redirectBase}/auth/callback` },
+      options: { redirectTo: `${redirectBase}${AUTH_PATHS.CALLBACK}` },
     });
   };
 

@@ -76,7 +76,7 @@ export default function CroatiaMap() {
   const [enabledTypes, setEnabledTypes] = useState<Record<PoiType, boolean>>(
     () =>
       Object.fromEntries(
-        (Object.keys(POI_TYPES) as PoiType[]).map((t) => [t, true]),
+        (Object.keys(POI_TYPES) as PoiType[]).map((type) => [type, true]),
       ) as Record<PoiType, boolean>,
   );
   const toggleType = useCallback(
@@ -104,12 +104,12 @@ export default function CroatiaMap() {
   // County visited percents (auto from POIs, or a manual override).
   const countyPercents = useMemo(() => {
     const result: Record<string, number> = {};
-    COUNTIES.forEach((c) => {
-      const record = countyDataMap[c.id];
+    COUNTIES.forEach((county) => {
+      const record = countyDataMap[county.id];
       if (record?.is_manual_override && record?.visited_percent != null) {
-        result[c.id] = record.visited_percent;
+        result[county.id] = record.visited_percent;
       } else {
-        result[c.id] = getVisitedPercent(c.id, poiDataMap);
+        result[county.id] = getVisitedPercent(county.id, poiDataMap);
       }
     });
     return result;
@@ -146,7 +146,7 @@ export default function CroatiaMap() {
       if (placingRef.current) return;
       const seed = getPoi(poiId) ?? getMountainPoi(poiId);
       const countyId =
-        seed?.county_id ?? userPois.find((p) => p.id === poiId)?.county_id;
+        seed?.county_id ?? userPois.find((poi) => poi.id === poiId)?.county_id;
       if (!countyId) return;
       setView({ kind: "poi", poiId, countyId });
     },
@@ -211,8 +211,10 @@ export default function CroatiaMap() {
     if (view?.kind !== "poi") return null;
     const seed = getPoi(view.poiId) ?? getMountainPoi(view.poiId);
     if (seed) return seed;
-    const u = userPois.find((p) => p.id === view.poiId);
-    return u ? { ...u, description: u.description ?? "" } : null;
+    const userPoi = userPois.find((poi) => poi.id === view.poiId);
+    return userPoi
+      ? { ...userPoi, description: userPoi.description ?? "" }
+      : null;
   }, [view, userPois]);
   const activePoiIsUser =
     view?.kind === "poi" && !getPoi(view.poiId) && !getMountainPoi(view.poiId);

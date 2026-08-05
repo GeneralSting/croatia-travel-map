@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { AUTH_PATHS } from "@/lib/data";
 import { useAuth } from "@/features/auth-portal";
 import type {
   CountyDataMap,
@@ -237,7 +238,7 @@ export function useTravelData() {
       await queryClient.cancelQueries({ queryKey: ["user_pois", uid] });
       const prev = queryClient.getQueryData<UserPoi[]>(["user_pois", uid]);
       queryClient.setQueryData<UserPoi[]>(["user_pois", uid], (old) =>
-        (old ?? []).filter((p) => p.id !== id),
+        (old ?? []).filter((poi) => poi.id !== id),
       );
       return { prev };
     },
@@ -298,7 +299,7 @@ export function useTravelData() {
         return;
       }
       if (!user) {
-        router.push("/login");
+        router.push(AUTH_PATHS.LOGIN);
         return;
       }
       poiMutation.mutate({ poiId, data });
@@ -316,7 +317,7 @@ export function useTravelData() {
         return;
       }
       if (!user) {
-        router.push("/login");
+        router.push(AUTH_PATHS.LOGIN);
         return;
       }
       countyMutation.mutate({ countyId, percent, isManual });
@@ -333,7 +334,7 @@ export function useTravelData() {
         return poi;
       }
       if (!user) {
-        router.push("/login");
+        router.push(AUTH_PATHS.LOGIN);
         return null;
       }
       addUserPoiMutation.mutate(poi);
@@ -345,7 +346,7 @@ export function useTravelData() {
   const deleteUserPoi = useCallback(
     (id: string) => {
       if (!isSupabaseConfigured) {
-        setLocalUserPois((prev) => prev.filter((p) => p.id !== id));
+        setLocalUserPois((prev) => prev.filter((poi) => poi.id !== id));
         setLocalPoi((prev) => {
           if (!(id in prev)) return prev;
           const rest = { ...prev };
@@ -355,7 +356,7 @@ export function useTravelData() {
         return;
       }
       if (!user) {
-        router.push("/login");
+        router.push(AUTH_PATHS.LOGIN);
         return;
       }
       deleteUserPoiMutation.mutate(id);
