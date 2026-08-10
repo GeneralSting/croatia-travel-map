@@ -1,67 +1,67 @@
-// Pure read helpers ("selectors") over the static map data — deriving map pins, lookups, and
-// the "percent explored" / fill-colour used across the feature. No side effects.
+// Pure, data-independent helpers over map data. The lookups that need the fetched reference data
+// (getPoi, getCity, mappablePois, …) now live in MapDataProvider; what remains here is pure math
+// and formatting that takes its inputs as arguments.
 
-import {
-  CITIES,
-  MOUNTAINS,
-  POIS,
-  POI_CITY_ID,
-} from "@/features/map-explorer/data/croatiaData";
-import type { City, POI, POIDataMap } from "@/features/map-explorer/types";
+import type {
+  City,
+  POI,
+  POIDataMap,
+} from "@/features/map-explorer/types/types";
 
-/**
- * Seed POIs drawn on the map: those that have coordinates AND are not tied to a city. A POI
- * that belongs to a city (Diocletian's Palace, the Sea Organ…) shows only inside that city's
- * drawer — the map is for distinct destinations (campsites, parks, rivers, islands…).
- */
-export function mappablePois(): POI[] {
-  return POIS.filter(
-    (poi) =>
-      typeof poi.lat === "number" &&
-      typeof poi.lng === "number" &&
-      !POI_CITY_ID[poi.id],
+// ── Views over the fetched POIs/cities (pure — take the data, return a slice) ───────────────────
+
+function hasCoords(poi: POI): poi is POI & { lat: number; lng: number } {
+  return typeof poi.lat === "number" && typeof poi.lng === "number";
+}
+
+/** POIs drawn as pins: have coordinates and aren't attached to a city (defaults + custom). */
+export function mappablePois(pois: POI[]): POI[] {
+  return pois.filter((poi) => hasCoords(poi) && poi.city_id == null);
+}
+
+/** A city's "places to visit" list. */
+export function poisForCity(pois: POI[], cityId: string): POI[] {
+  return pois.filter((poi) => poi.city_id === cityId);
+}
+
+/** Default (non-custom) county POIs not tied to a city — the county panel's own list. */
+export function looseCountyPois(defaultPois: POI[], countyId: string): POI[] {
+  return defaultPois.filter(
+    (poi) => poi.county_id === countyId && poi.city_id == null,
   );
 }
 
-const poiById = Object.fromEntries(POIS.map((poi) => [poi.id, poi]));
-
-/** Look up a single seed POI by id. */
-export function getPoi(poiId: string): POI | undefined {
-  return poiById[poiId];
+/** The user's own custom POIs within a county (the county panel's "My Places"). */
+export function customPoisForCounty(pois: POI[], countyId: string): POI[] {
+  return pois.filter(
+    (poi) => poi.owner_id != null && poi.county_id === countyId,
+  );
 }
 
-/** Mountain peaks expressed as POIs (they already carry real coordinates). */
-export function mountainPois(): POI[] {
-  return MOUNTAINS.map((mountain) => ({
-    id: mountain.id,
-    county_id: mountain.county_id,
-    name: mountain.name,
-    type: "mountain" as const,
-    description: "",
-    lat: mountain.lat,
-    lng: mountain.lng,
-  }));
+/** All default POIs in a county — the basis for the county's explored %. */
+export function countyDefaultPois(defaultPois: POI[], countyId: string): POI[] {
+  return defaultPois.filter((poi) => poi.county_id === countyId);
 }
 
-const mountainById = Object.fromEntries(
-  mountainPois().map((poi) => [poi.id, poi]),
-);
-
-/** Look up a single mountain (as a POI) by id. */
-export function getMountainPoi(poiId: string): POI | undefined {
-  return mountainById[poiId];
+/** Cities inside a county, major first. */
+export function citiesForCounty(cities: City[], countyId: string): City[] {
+  return cities
+    .filter((city) => city.county_id === countyId)
+    .sort((a, b) => a.importance - b.importance);
 }
 
-export function getVisitedPercent(
-  countyId: string,
-  poiDataMap: POIDataMap,
-): number {
-  const countyPois = POIS.filter((poi) => poi.county_id === countyId);
-  if (countyPois.length === 0) return 0;
-  const visited = countyPois.filter(
+/** Explored percentage for a set of POIs, from how many are marked "visited". */
+export function percentVisited(pois: POI[], poiDataMap: POIDataMap): number {
+  if (pois.length === 0) return 0;
+  const visited = pois.filter(
     (poi) => poiDataMap[poi.id]?.status === "visited",
   ).length;
-  return Math.round((visited / countyPois.length) * 100);
+  return Math.round((visited / pois.length) * 100);
+}
+
+/** Cover image path for a city, falling back to the `/cities/<id>.jpg` convention. */
+export function cityCover(city: City): string {
+  return city.coverImage ?? `/cities/${city.id}.jpg`;
 }
 
 export function getGradientColor(percent: number): string {
@@ -97,44 +97,4 @@ function interpolateColor(
   const green = Math.round(fromGreen + (toGreen - fromGreen) * ratio);
   const blue = Math.round(fromBlue + (toBlue - fromBlue) * ratio);
   return `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
-}
-
-const cityById = Object.fromEntries(CITIES.map((city) => [city.id, city]));
-
-export function getCity(cityId: string): City | undefined {
-  return cityById[cityId];
-}
-
-/** Cover image path for a city, falling back to the `/cities/<id>.jpg` convention. */
-export function cityCover(city: City): string {
-  return city.coverImage ?? `/cities/${city.id}.jpg`;
-}
-
-/** Cities inside a county, ordered by importance (major first). */
-export function citiesForCounty(countyId: string): City[] {
-  return CITIES.filter((city) => city.county_id === countyId).sort(
-    (cityA, cityB) => cityA.importance - cityB.importance,
-  );
-}
-
-/** The POIs that make up a city's "places to visit" list. */
-export function poisForCity(cityId: string): POI[] {
-  return POIS.filter((poi) => POI_CITY_ID[poi.id] === cityId);
-}
-
-/** County POIs that are NOT tied to a city (shown directly in the county panel). */
-export function looseCountyPois(countyId: string): POI[] {
-  return POIS.filter(
-    (poi) => poi.county_id === countyId && !POI_CITY_ID[poi.id],
-  );
-}
-
-/** A city's own explored percentage, from the status of its places to visit. */
-export function getCityPercent(cityId: string, poiDataMap: POIDataMap): number {
-  const pois = poisForCity(cityId);
-  if (pois.length === 0) return 0;
-  const visited = pois.filter(
-    (poi) => poiDataMap[poi.id]?.status === "visited",
-  ).length;
-  return Math.round((visited / pois.length) * 100);
 }

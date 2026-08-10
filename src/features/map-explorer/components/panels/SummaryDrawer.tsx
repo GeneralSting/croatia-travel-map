@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  COUNTIES,
-  POIS,
-  getGradientColor,
-  type POIDataMap,
-} from "@/features/map-explorer/data";
+import type { POIDataMap } from "@/features/map-explorer/types/types";
+import { getGradientColor } from "@/features/map-explorer/utils/selectors";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 import { ChevronUp, ChevronDown, Map } from "lucide-react";
 
 interface SummaryDrawerProps {
@@ -20,30 +17,33 @@ export default function SummaryDrawer({
   countyPercents,
   onCountySelect,
 }: SummaryDrawerProps) {
+  const { counties, pois } = useMapData();
+  // Global stats count the shared default POIs only (custom POIs are personal extras).
+  const defaultPois = pois.filter((poi) => poi.owner_id == null);
   const [open, setOpen] = useState(false);
 
-  const totalPois = POIS.length;
-  const visitedPois = POIS.filter(
+  const totalPois = defaultPois.length;
+  const visitedPois = defaultPois.filter(
     (poi) => poiDataMap[poi.id]?.status === "visited",
   ).length;
-  const wantPois = POIS.filter(
+  const wantPois = defaultPois.filter(
     (poi) => poiDataMap[poi.id]?.status === "want_to_visit",
   ).length;
   const percentExplored =
     totalPois > 0 ? Math.round((visitedPois / totalPois) * 100) : 0;
-  const countiesStarted = COUNTIES.filter(
+  const countiesStarted = counties.filter(
     (county) => (countyPercents[county.id] ?? 0) > 0,
   ).length;
-  const countiesCompleted = COUNTIES.filter(
+  const countiesCompleted = counties.filter(
     (county) => (countyPercents[county.id] ?? 0) >= 100,
   ).length;
 
-  const sortedCounties = [...COUNTIES]
+  const sortedCounties = [...counties]
     .map((county) => ({ ...county, percent: countyPercents[county.id] ?? 0 }))
     .sort((countyA, countyB) => countyB.percent - countyA.percent);
 
-  const wantCounties = COUNTIES.filter((county) =>
-    POIS.some(
+  const wantCounties = counties.filter((county) =>
+    defaultPois.some(
       (poi) =>
         poi.county_id === county.id &&
         poiDataMap[poi.id]?.status === "want_to_visit",
@@ -73,7 +73,9 @@ export default function SummaryDrawer({
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:inline">{wantPois} planned</span>
             <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:inline">{countiesStarted} counties started</span>
+            <span className="hidden sm:inline">
+              {countiesStarted} counties started
+            </span>
           </div>
         </div>
         {open ? (
@@ -111,7 +113,10 @@ export default function SummaryDrawer({
                     color: "#15803D",
                   },
                 ].map((stat) => (
-                  <div key={stat.label} className="bg-slate-800/50 rounded-xl p-3">
+                  <div
+                    key={stat.label}
+                    className="bg-slate-800/50 rounded-xl p-3"
+                  >
                     <div
                       className="text-2xl font-bold"
                       style={{ color: stat.color }}
@@ -143,7 +148,9 @@ export default function SummaryDrawer({
                   >
                     <div
                       className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: getGradientColor(county.percent) }}
+                      style={{
+                        backgroundColor: getGradientColor(county.percent),
+                      }}
                     />
                     <span className="text-xs text-white/70 flex-1 truncate">
                       {county.name}
@@ -179,7 +186,7 @@ export default function SummaryDrawer({
               ) : (
                 <div className="space-y-1.5">
                   {wantCounties.map((county) => {
-                    const wantInCounty = POIS.filter(
+                    const wantInCounty = defaultPois.filter(
                       (poi) =>
                         poi.county_id === county.id &&
                         poiDataMap[poi.id]?.status === "want_to_visit",

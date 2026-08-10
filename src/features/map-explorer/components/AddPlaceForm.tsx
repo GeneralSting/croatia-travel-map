@@ -8,7 +8,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import { POI_TYPES, type PoiType } from "@/features/map-explorer/data";
+import type { PoiType } from "@/features/map-explorer/types/types";
+import { POI_TYPE_STYLE } from "@/features/map-explorer/constants/poiTypeStyle";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 
 interface AddPlaceFormProps {
   lat: number;
@@ -17,9 +19,13 @@ interface AddPlaceFormProps {
   onCancel: () => void;
 }
 
-const TYPE_ORDER = Object.keys(POI_TYPES) as PoiType[];
-
-export default function AddPlaceForm({ lat, lng, onConfirm, onCancel }: AddPlaceFormProps) {
+export default function AddPlaceForm({
+  lat,
+  lng,
+  onConfirm,
+  onCancel,
+}: AddPlaceFormProps) {
+  const { poiTypes, poiTypeOrder } = useMapData();
   const [name, setName] = useState("");
   const [type, setType] = useState<PoiType>("landmark");
   const markerRef = useRef<L.Marker | null>(null);
@@ -30,7 +36,7 @@ export default function AddPlaceForm({ lat, lng, onConfirm, onCancel }: AddPlace
     () =>
       L.divIcon({
         className: "cx-poi-icon",
-        html: `<span class="cx-poi-pin cx-poi-pin--sel" style="--poi:${POI_TYPES[type].color}">${POI_TYPES[type].icon}</span>`,
+        html: `<span class="cx-poi-pin cx-poi-pin--sel" style="--poi:${POI_TYPE_STYLE[type].color}">${POI_TYPE_STYLE[type].icon}</span>`,
         iconSize: [26, 26],
         iconAnchor: [13, 13],
       }),
@@ -48,7 +54,12 @@ export default function AddPlaceForm({ lat, lng, onConfirm, onCancel }: AddPlace
   };
 
   return (
-    <Marker position={[lat, lng]} icon={icon} ref={markerRef} zIndexOffset={2000}>
+    <Marker
+      position={[lat, lng]}
+      icon={icon}
+      ref={markerRef}
+      zIndexOffset={2000}
+    >
       <Popup
         className="cx-form-popup"
         closeButton={false}
@@ -75,9 +86,9 @@ export default function AddPlaceForm({ lat, lng, onConfirm, onCancel }: AddPlace
             onChange={(e) => setType(e.target.value as PoiType)}
             className="w-full rounded-lg border border-white/10 bg-slate-800 px-2.5 py-1.5 text-xs text-white/80 focus:border-blue-500 focus:outline-none"
           >
-            {TYPE_ORDER.map((poiType) => (
+            {poiTypeOrder.map((poiType) => (
               <option key={poiType} value={poiType}>
-                {POI_TYPES[poiType].icon} {POI_TYPES[poiType].label}
+                {poiTypes[poiType]?.icon} {poiTypes[poiType]?.label}
               </option>
             ))}
           </select>

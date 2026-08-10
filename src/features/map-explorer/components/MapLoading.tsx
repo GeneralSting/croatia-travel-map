@@ -1,22 +1,25 @@
 "use client";
 
 import { useRef } from "react";
-import { SEARCH_PATH, SHAPE_URL } from "@/features/map-explorer/constants/searchPath";
-import { useCroatiaLoadingAnimation } from "@/features/map-explorer/hooks/useCroatiaAnimation";
+import {
+  SEARCH_PATH,
+  SHAPE_URL,
+} from "@/features/map-explorer/constants/searchPath";
+import { useMapLoadingAnimation } from "../hooks/useMapLoadingAnimation";
 
-interface CroatiaLoadingProps {
+interface MapLoadingProps {
   size?: number;
   speed?: number;
   zoom?: number;
   label?: string;
 }
 
-export default function CroatiaLoading({
+export default function MapLoading({
   size = 220,
-  speed = 1,
+  speed = 2,
   zoom = 2.2,
   label = "Loading",
-}: CroatiaLoadingProps) {
+}: MapLoadingProps) {
   const magnifierRef = useRef<HTMLDivElement>(null);
   const lensRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLSpanElement>(null);
@@ -25,7 +28,7 @@ export default function CroatiaLoading({
   const lensRadius = 88; // lens interior radius (220/2 - 22 border)
 
   // Trigger our custom animation loop hook
-  useCroatiaLoadingAnimation({
+  useMapLoadingAnimation({
     magnifierRef,
     lensRef,
     dotsRef,

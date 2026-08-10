@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  POI_TYPES,
-  type POI,
-  type POIRecord,
-  type POIStatus,
-} from "@/features/map-explorer/data";
+import type {
+  POI,
+  POIRecord,
+  POIStatus,
+} from "@/features/map-explorer/types/types";
 import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 import { useAuth } from "@/features/auth-portal";
 import { AUTH_PATHS } from "@/lib/data";
 import {
@@ -59,6 +59,7 @@ interface POICardProps {
 
 export default function POICard({ poi, userData, onUpdate }: POICardProps) {
   const { configured, user } = useAuth();
+  const { poiTypes } = useMapData();
   // Once Supabase is set up, tracking requires an account.
   const loginRequired = configured && !user;
 
@@ -71,7 +72,7 @@ export default function POICard({ poi, userData, onUpdate }: POICardProps) {
   });
   const [saving, setSaving] = useState(false);
 
-  const poiType = POI_TYPES[poi.type] || POI_TYPES.landmark;
+  const poiType = poiTypes[poi.type] ?? poiTypes.landmark;
   const currentStatus =
     STATUS_OPTIONS.find((option) => option.value === localData.status) ||
     STATUS_OPTIONS[0];
@@ -150,98 +151,98 @@ export default function POICard({ poi, userData, onUpdate }: POICardProps) {
             <>
               {/* Status toggle buttons */}
               <div>
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">
-              Status
-            </p>
-            <div className="flex gap-1.5">
-              {STATUS_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleStatusChange(option.value)}
-                  className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
-                    localData.status === option.value
-                      ? `${option.bg} ${option.text} ${option.border || "border-slate-600"} opacity-100`
-                      : "bg-slate-800 text-white/40 border-white/5 hover:border-white/20"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Visited-only fields */}
-          {localData.status === "visited" && (
-            <>
-              {/* Star rating */}
-              <div>
                 <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">
-                  Rating
+                  Status
                 </p>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
+                <div className="flex gap-1.5">
+                  {STATUS_OPTIONS.map((option) => (
                     <button
-                      key={star}
-                      onClick={() => handleFieldUpdate("rating", star)}
-                      className="transition-transform hover:scale-110"
+                      key={option.value}
+                      onClick={() => handleStatusChange(option.value)}
+                      className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
+                        localData.status === option.value
+                          ? `${option.bg} ${option.text} ${option.border || "border-slate-600"} opacity-100`
+                          : "bg-slate-800 text-white/40 border-white/5 hover:border-white/20"
+                      }`}
                     >
-                      <Star
-                        className="w-5 h-5"
-                        fill={
-                          (localData.rating ?? 0) >= star
-                            ? "#F59E0B"
-                            : "transparent"
-                        }
-                        stroke={
-                          (localData.rating ?? 0) >= star
-                            ? "#F59E0B"
-                            : "#475569"
-                        }
-                      />
+                      {option.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Date visited */}
+              {/* Visited-only fields */}
+              {localData.status === "visited" && (
+                <>
+                  {/* Star rating */}
+                  <div>
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">
+                      Rating
+                    </p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => handleFieldUpdate("rating", star)}
+                          className="transition-transform hover:scale-110"
+                        >
+                          <Star
+                            className="w-5 h-5"
+                            fill={
+                              (localData.rating ?? 0) >= star
+                                ? "#F59E0B"
+                                : "transparent"
+                            }
+                            stroke={
+                              (localData.rating ?? 0) >= star
+                                ? "#F59E0B"
+                                : "#475569"
+                            }
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Date visited */}
+                  <div>
+                    <label className="text-[10px] text-white/40 uppercase tracking-wider flex items-center gap-1 mb-1">
+                      <Calendar className="w-3 h-3" /> Date Visited
+                    </label>
+                    <input
+                      type="date"
+                      value={localData.date_visited ?? ""}
+                      onChange={(e) =>
+                        handleFieldUpdate("date_visited", e.target.value)
+                      }
+                      className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Notes */}
               <div>
                 <label className="text-[10px] text-white/40 uppercase tracking-wider flex items-center gap-1 mb-1">
-                  <Calendar className="w-3 h-3" /> Date Visited
+                  <MessageSquare className="w-3 h-3" /> Notes
                 </label>
-                <input
-                  type="date"
-                  value={localData.date_visited ?? ""}
-                  onChange={(e) =>
-                    handleFieldUpdate("date_visited", e.target.value)
-                  }
-                  className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:border-blue-500"
+                <textarea
+                  value={localData.notes ?? ""}
+                  onChange={(e) => handleFieldUpdate("notes", e.target.value)}
+                  placeholder="Add your impressions, tips, memories..."
+                  rows={2}
+                  className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-xs text-white/80 placeholder-white/25 focus:outline-none focus:border-blue-500 resize-none"
                 />
               </div>
-            </>
-          )}
 
-          {/* Notes */}
-          <div>
-            <label className="text-[10px] text-white/40 uppercase tracking-wider flex items-center gap-1 mb-1">
-              <MessageSquare className="w-3 h-3" /> Notes
-            </label>
-            <textarea
-              value={localData.notes ?? ""}
-              onChange={(e) => handleFieldUpdate("notes", e.target.value)}
-              placeholder="Add your impressions, tips, memories..."
-              rows={2}
-              className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-xs text-white/80 placeholder-white/25 focus:outline-none focus:border-blue-500 resize-none"
-            />
-          </div>
-
-          {/* Save button */}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white text-xs font-medium rounded-lg transition-colors"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
+              {/* Save button */}
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white text-xs font-medium rounded-lg transition-colors"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
             </>
           )}
         </div>

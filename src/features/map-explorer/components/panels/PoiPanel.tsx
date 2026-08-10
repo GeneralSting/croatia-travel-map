@@ -6,14 +6,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  COUNTIES,
-  POI_TYPES,
-  type POI,
-  type POIRecord,
-  type POIStatus,
-} from "@/features/map-explorer/data";
+import type {
+  POI,
+  POIRecord,
+  POIStatus,
+} from "@/features/map-explorer/types/types";
 import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 import { useAuth } from "@/features/auth-portal";
 import { AUTH_PATHS } from "@/lib/data";
 import {
@@ -26,10 +25,33 @@ import {
   LogIn,
 } from "lucide-react";
 
-const STATUS_OPTIONS: { value: POIStatus; label: string; bg: string; text: string; border?: string }[] = [
-  { value: "not_visited", label: "Not Visited", bg: "bg-slate-700", text: "text-slate-300" },
-  { value: "want_to_visit", label: "Want to Visit", bg: "bg-blue-900/60", text: "text-blue-300", border: "border-blue-600" },
-  { value: "visited", label: "Visited", bg: "bg-green-900/60", text: "text-green-300", border: "border-green-600" },
+const STATUS_OPTIONS: {
+  value: POIStatus;
+  label: string;
+  bg: string;
+  text: string;
+  border?: string;
+}[] = [
+  {
+    value: "not_visited",
+    label: "Not Visited",
+    bg: "bg-slate-700",
+    text: "text-slate-300",
+  },
+  {
+    value: "want_to_visit",
+    label: "Want to Visit",
+    bg: "bg-blue-900/60",
+    text: "text-blue-300",
+    border: "border-blue-600",
+  },
+  {
+    value: "visited",
+    label: "Visited",
+    bg: "bg-green-900/60",
+    text: "text-green-300",
+    border: "border-green-600",
+  },
 ];
 
 interface PoiPanelProps {
@@ -41,12 +63,19 @@ interface PoiPanelProps {
   onDelete?: () => void;
 }
 
-export default function PoiPanel({ poi, userData, onUpdate, onClose, onDelete }: PoiPanelProps) {
+export default function PoiPanel({
+  poi,
+  userData,
+  onUpdate,
+  onClose,
+  onDelete,
+}: PoiPanelProps) {
   const { configured, user } = useAuth();
+  const { getCounty, poiTypes } = useMapData();
   const loginRequired = configured && !user;
 
-  const county = COUNTIES.find((county) => county.id === poi.county_id);
-  const typeInfo = POI_TYPES[poi.type] || POI_TYPES.landmark;
+  const county = getCounty(poi.county_id);
+  const typeInfo = poiTypes[poi.type] ?? poiTypes.landmark;
 
   const [data, setData] = useState<POIUpdate>({
     status: userData?.status || "not_visited",
@@ -79,9 +108,13 @@ export default function PoiPanel({ poi, userData, onUpdate, onClose, onDelete }:
       <div className="flex-shrink-0 p-5 border-b border-white/10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
-            <span className="text-2xl leading-none flex-shrink-0">{typeInfo.icon}</span>
+            <span className="text-2xl leading-none flex-shrink-0">
+              {typeInfo.icon}
+            </span>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-white leading-tight">{poi.name}</h2>
+              <h2 className="text-lg font-bold text-white leading-tight">
+                {poi.name}
+              </h2>
               <div className="flex items-center gap-2 mt-1 text-xs text-white/50">
                 <span
                   className="px-2 py-0.5 rounded-full border text-[10px]"
@@ -110,7 +143,9 @@ export default function PoiPanel({ poi, userData, onUpdate, onClose, onDelete }:
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-4">
         {poi.description && (
-          <p className="text-sm text-white/60 italic leading-relaxed">{poi.description}</p>
+          <p className="text-sm text-white/60 italic leading-relaxed">
+            {poi.description}
+          </p>
         )}
 
         {loginRequired ? (
@@ -125,7 +160,9 @@ export default function PoiPanel({ poi, userData, onUpdate, onClose, onDelete }:
           <>
             {/* Status */}
             <div>
-              <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Status</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">
+                Status
+              </p>
               <div className="flex gap-1.5">
                 {STATUS_OPTIONS.map((option) => (
                   <button
@@ -147,7 +184,9 @@ export default function PoiPanel({ poi, userData, onUpdate, onClose, onDelete }:
             {data.status === "visited" && (
               <>
                 <div>
-                  <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Rating</p>
+                  <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">
+                    Rating
+                  </p>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -157,8 +196,14 @@ export default function PoiPanel({ poi, userData, onUpdate, onClose, onDelete }:
                       >
                         <Star
                           className="w-5 h-5"
-                          fill={(data.rating ?? 0) >= star ? "#F59E0B" : "transparent"}
-                          stroke={(data.rating ?? 0) >= star ? "#F59E0B" : "#475569"}
+                          fill={
+                            (data.rating ?? 0) >= star
+                              ? "#F59E0B"
+                              : "transparent"
+                          }
+                          stroke={
+                            (data.rating ?? 0) >= star ? "#F59E0B" : "#475569"
+                          }
                         />
                       </button>
                     ))}

@@ -8,7 +8,8 @@
 import { useState } from "react";
 import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import { CITIES, CITY_MIN_ZOOM, POI_TYPES } from "@/features/map-explorer/data";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
+import { CITY_MIN_ZOOM, POI_TYPE_STYLE } from "@/features/map-explorer/constants/poiTypeStyle";
 
 // One divIcon per selected/not state — reused across all city markers.
 const cityIconCache = new Map<string, L.DivIcon>();
@@ -16,7 +17,7 @@ function cityIcon(selected: boolean): L.DivIcon {
   const key = String(selected);
   let icon = cityIconCache.get(key);
   if (!icon) {
-    const { icon: emoji, color } = POI_TYPES.city;
+    const { icon: emoji, color } = POI_TYPE_STYLE.city;
     icon = L.divIcon({
       className: "cx-poi-icon",
       html: `<span class="cx-poi-pin${selected ? " cx-poi-pin--sel" : ""}" style="--poi:${color}">${emoji}</span>`,
@@ -43,13 +44,14 @@ export default function PlaceMarkers({
   show,
   showNames,
 }: PlaceMarkersProps) {
+  const { cities } = useMapData();
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
 
   if (!show) return null;
 
-  const visibleCities = CITIES.filter(
+  const visibleCities = cities.filter(
     (city) => zoom >= CITY_MIN_ZOOM[city.importance],
   );
 

@@ -2,6 +2,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers"; // utility that allows server-side code to read, set and delete HTTP cookies
 import { getEnvVariable } from "../getEnvVariable";
+import type { Database } from "./database.types";
 
 /**
  * server-side Supbabase client (Server Components, Route Handlers, Server Actions)
@@ -13,7 +14,7 @@ export async function createClient() {
   const supabaseUrl = getEnvVariable("NEXT_PUBLIC_SUPABASE_URL");
   const supabaseAnonKey = getEnvVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       // read all existing cookies. If it finds a valid session token, it authenticates the user
       getAll() {

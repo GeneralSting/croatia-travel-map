@@ -2,7 +2,7 @@ import { useEffect, type RefObject } from "react";
 import { SEARCH_PATH } from "@/features/map-explorer/constants/searchPath";
 import { catmullRom } from "@/features/map-explorer/utils/catmullRom";
 
-interface useCroatiaLoadingAnimationProps {
+interface useMapLoadingAnimationProps {
   magnifierRef: RefObject<HTMLDivElement | null>;
   lensRef: RefObject<HTMLDivElement | null>;
   dotsRef: RefObject<HTMLSpanElement | null>;
@@ -11,20 +11,28 @@ interface useCroatiaLoadingAnimationProps {
   lensRadius: number;
 }
 
-export function useCroatiaLoadingAnimation({
+/**
+ * Persisted across mounts - there's only ever one loader on screen, the loader remounts once when the dynamic-import
+ * fallback hands off to the map's own data-loading gate (without this the search animation would restart)
+ * Keeping the progress where left out
+ */
+let pathProgress = 0; // current position index along the search path
+let lastTimestamp = 0;
+
+export function useMapLoadingAnimation({
   magnifierRef,
   lensRef,
   dotsRef,
   speed,
   zoom,
   lensRadius,
-}: useCroatiaLoadingAnimationProps) {
+}: useMapLoadingAnimationProps) {
   useEffect(() => {
     const points = SEARCH_PATH;
     const totalPoints = points.length;
 
-    let pathProgress = 0; // Tracks our current position index on the path
-    let lastTimestamp = performance.now();
+    // Re-anchor the clock on the (re)mount so the first frame - 'pathProgress' itself is not reset
+    lastTimestamp = performance.now();
     let animationFrameId = 0;
 
     const tick = (currentTimestamp: number) => {

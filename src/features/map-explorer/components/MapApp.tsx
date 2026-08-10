@@ -1,12 +1,13 @@
 "use client";
 
-// Client entry point for the map. Leaflet touches `window`/`document` on import, so the
-// whole map tree must be loaded client-side only (`ssr: false`). `next/dynamic` with
-// `ssr: false` is only allowed inside a Client Component, which is why this wrapper exists.
-
 import dynamic from "next/dynamic";
-import CroatiaLoading from "./CroatiaLoading";
+import MapLoading from "./MapLoading";
 
+/**
+ * Client entry point for the map
+ * Leaflet touches window/document on import so the whole map tree must be loaded client-side only (ssr: false)
+ * next/dynamic with ssr: false is only allowed inside a client component
+ */
 const CroatiaMap = dynamic(() => import("./CroatiaMap"), {
   ssr: false,
   loading: () => (
@@ -17,7 +18,7 @@ const CroatiaMap = dynamic(() => import("./CroatiaMap"), {
           "radial-gradient(circle at 50% 42%, #0d2136 0%, #06111f 68%)",
       }}
     >
-      <CroatiaLoading />
+      <MapLoading />
     </div>
   ),
 });

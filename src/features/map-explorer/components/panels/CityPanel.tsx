@@ -1,33 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { POI, POIDataMap } from "@/features/map-explorer/types/types";
 import {
-  COUNTIES,
-  POI_TYPES,
   cityCover,
-  getCity,
-  getCityPercent,
   getGradientColor,
-  poisForCity,
-  type POI,
-  type POIDataMap,
-  type PoiType,
-} from "@/features/map-explorer/data";
+} from "@/features/map-explorer/utils/selectors";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
 import { X, ChevronLeft, MapPin } from "lucide-react";
 import POICard from "./POICard";
-
-const TYPE_ORDER: PoiType[] = [
-  "city",
-  "national_park",
-  "island",
-  "mountain",
-  "lake",
-  "river",
-  "campsite",
-  "nature",
-  "landmark",
-];
 
 interface CityPanelProps {
   cityId: string;
@@ -44,24 +26,31 @@ export default function CityPanel({
   onBack,
   onPOIUpdate,
 }: CityPanelProps) {
+  const {
+    getCity,
+    getCounty,
+    getCityPercent,
+    poisForCity,
+    poiTypes,
+    poiTypeOrder,
+  } = useMapData();
   const city = getCity(cityId);
   const [imgError, setImgError] = useState(false);
 
-  const cityPois = useMemo(() => poisForCity(cityId), [cityId]);
+  const cityPois = useMemo(() => poisForCity(cityId), [cityId, poisForCity]);
   const groupedPois = useMemo(() => {
     const groups: Record<string, POI[]> = {};
     cityPois.forEach((poi) => {
       (groups[poi.type] ??= []).push(poi);
     });
-    return TYPE_ORDER.filter((poiType) => groups[poiType]).map((poiType) => ({
-      type: poiType,
-      pois: groups[poiType],
-    }));
-  }, [cityPois]);
+    return poiTypeOrder
+      .filter((poiType) => groups[poiType])
+      .map((poiType) => ({ type: poiType, pois: groups[poiType] }));
+  }, [cityPois, poiTypeOrder]);
 
   if (!city) return null;
 
-  const county = COUNTIES.find((county) => county.id === city.county_id);
+  const county = getCounty(city.county_id);
   const percent = getCityPercent(cityId, poiDataMap);
   const visitedCount = cityPois.filter(
     (poi) => poiDataMap[poi.id]?.status === "visited",
@@ -121,11 +110,20 @@ export default function CityPanel({
 
       {/* City info + progress */}
       <div className="flex-shrink-0 p-5 border-b border-white/10">
-        <p className="text-sm text-white/60 leading-relaxed mb-4">{city.description}</p>
+        <p className="text-sm text-white/60 leading-relaxed mb-4">
+          {city.description}
+        </p>
         <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0">
             <svg className="w-16 h-16 -rotate-90" viewBox="0 0 80 80">
-              <circle cx="40" cy="40" r="32" fill="none" stroke="#1E293B" strokeWidth="8" />
+              <circle
+                cx="40"
+                cy="40"
+                r="32"
+                fill="none"
+                stroke="#1E293B"
+                strokeWidth="8"
+              />
               <circle
                 cx="40"
                 cy="40"
@@ -136,18 +134,28 @@ export default function CityPanel({
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 32}`}
                 strokeDashoffset={`${2 * Math.PI * 32 * (1 - percent / 100)}`}
-                style={{ transition: "stroke-dashoffset 0.6s ease, stroke 0.4s ease" }}
+                style={{
+                  transition: "stroke-dashoffset 0.6s ease, stroke 0.4s ease",
+                }}
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-base font-bold text-white leading-none">{percent}%</span>
-              <span className="text-[8px] text-white/40 leading-none mt-0.5">explored</span>
+              <span className="text-base font-bold text-white leading-none">
+                {percent}%
+              </span>
+              <span className="text-[8px] text-white/40 leading-none mt-0.5">
+                explored
+              </span>
             </div>
           </div>
           <div className="flex-1 text-sm text-white/70">
             <p>
-              <span className="font-semibold text-white">{visitedCount}</span> of{" "}
-              <span className="font-semibold text-white">{cityPois.length}</span> places visited
+              <span className="font-semibold text-white">{visitedCount}</span>{" "}
+              of{" "}
+              <span className="font-semibold text-white">
+                {cityPois.length}
+              </span>{" "}
+              places visited
             </p>
             <p className="text-xs text-white/40 mt-1">
               {cityPois.length} place{cityPois.length === 1 ? "" : "s"} to visit
@@ -164,7 +172,7 @@ export default function CityPanel({
           </p>
         ) : (
           groupedPois.map(({ type, pois }) => {
-            const typeInfo = POI_TYPES[type];
+            const typeInfo = poiTypes[type];
             return (
               <div key={type}>
                 <div className="flex items-center gap-2 mb-2">

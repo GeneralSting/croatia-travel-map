@@ -8,18 +8,26 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut, SlidersHorizontal, LogIn } from "lucide-react";
-import { POI_TYPES, type PoiType } from "@/features/map-explorer/data";
+import {
+  ChevronDown,
+  LogOut,
+  SlidersHorizontal,
+  LogIn,
+  Star,
+} from "lucide-react";
+import type { PoiType } from "@/features/map-explorer/types/types";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 import { useAuth } from "@/features/auth-portal";
 import { AUTH_PATHS } from "@/lib/data";
-
-const TYPE_ORDER = Object.keys(POI_TYPES) as PoiType[];
 
 interface MapControlsProps {
   showNames: boolean;
   onToggleNames: () => void;
   enabledTypes: Record<PoiType, boolean>;
   onToggleType: (type: PoiType) => void;
+  /** "My places" filter — shows the user's custom POIs regardless of their type. */
+  showCustom: boolean;
+  onToggleCustom: () => void;
 }
 
 export default function MapControls({
@@ -27,8 +35,11 @@ export default function MapControls({
   onToggleNames,
   enabledTypes,
   onToggleType,
+  showCustom,
+  onToggleCustom,
 }: MapControlsProps) {
   const { user, configured, loading, signOut } = useAuth();
+  const { poiTypes, poiTypeOrder } = useMapData();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -56,7 +67,9 @@ export default function MapControls({
       .join("")
       .toUpperCase() || "?";
 
-  const hiddenCount = TYPE_ORDER.filter((type) => !enabledTypes[type]).length;
+  const hiddenCount =
+    poiTypeOrder.filter((type) => !enabledTypes[type]).length +
+    (showCustom ? 0 : 1);
 
   const primary = user
     ? fullName || "Account"
@@ -126,77 +139,89 @@ export default function MapControls({
         >
           <div className="px-3 pb-3 pt-1 space-y-3">
             {/* Account row */}
-          {configured && (
-            <>
-              {user ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className="text-xs text-white/60 truncate"
-                    title={user.email}
+            {configured && (
+              <>
+                {user ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className="text-xs text-white/60 truncate"
+                      title={user.email}
+                    >
+                      {user.email}
+                    </span>
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-1 text-xs text-white/60 hover:text-white px-2 py-1 rounded-lg border border-white/10 hover:border-white/25 transition-colors shrink-0"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Sign out
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href={AUTH_PATHS.LOGIN}
+                    className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
                   >
-                    {user.email}
-                  </span>
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center gap-1 text-xs text-white/60 hover:text-white px-2 py-1 rounded-lg border border-white/10 hover:border-white/25 transition-colors shrink-0"
+                    <LogIn className="w-3.5 h-3.5" />
+                    Sign in
+                  </Link>
+                )}
+                <div className="h-px bg-white/10" />
+              </>
+            )}
+
+            {/* Names toggle */}
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showNames}
+                onChange={onToggleNames}
+                className="w-3.5 h-3.5 accent-blue-500"
+              />
+              <span className="text-xs text-white/80">Display POI names</span>
+            </label>
+
+            <div className="h-px bg-white/10" />
+
+            {/* Type filters */}
+            <div>
+              <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">
+                Show types
+              </p>
+              <div className="space-y-1.5">
+                {poiTypeOrder.map((type) => (
+                  <label
+                    key={type}
+                    className="flex items-center gap-2.5 cursor-pointer select-none"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
-                    Sign out
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  href={AUTH_PATHS.LOGIN}
-                  className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
-                >
-                  <LogIn className="w-3.5 h-3.5" />
-                  Sign in
-                </Link>
-              )}
-              <div className="h-px bg-white/10" />
-            </>
-          )}
+                    <input
+                      type="checkbox"
+                      checked={enabledTypes[type]}
+                      onChange={() => onToggleType(type)}
+                      className="w-3.5 h-3.5 accent-blue-500"
+                    />
+                    <span className="text-sm leading-none">
+                      {poiTypes[type]?.icon}
+                    </span>
+                    <span className="text-xs text-white/70">
+                      {poiTypes[type]?.label}
+                    </span>
+                  </label>
+                ))}
 
-          {/* Names toggle */}
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={showNames}
-              onChange={onToggleNames}
-              className="w-3.5 h-3.5 accent-blue-500"
-            />
-            <span className="text-xs text-white/80">Display POI names</span>
-          </label>
-
-          <div className="h-px bg-white/10" />
-
-          {/* Type filters */}
-          <div>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">
-              Show types
-            </p>
-            <div className="space-y-1.5">
-              {TYPE_ORDER.map((type) => (
-                <label
-                  key={type}
-                  className="flex items-center gap-2.5 cursor-pointer select-none"
-                >
+                {/* My places — the user's custom POIs, shown regardless of their type filter. */}
+                <label className="flex items-center gap-2.5 cursor-pointer select-none border-t border-white/5 mt-1.5 pt-2">
                   <input
                     type="checkbox"
-                    checked={enabledTypes[type]}
-                    onChange={() => onToggleType(type)}
+                    checked={showCustom}
+                    onChange={onToggleCustom}
                     className="w-3.5 h-3.5 accent-blue-500"
                   />
-                  <span className="text-sm leading-none">
-                    {POI_TYPES[type].icon}
-                  </span>
-                  <span className="text-xs text-white/70">
-                    {POI_TYPES[type].label}
-                  </span>
+                  <Star className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-xs text-white/70">My places</span>
                 </label>
-              ))}
+              </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
