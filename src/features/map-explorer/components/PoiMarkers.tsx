@@ -8,8 +8,9 @@ import { useMemo, useState } from "react";
 import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { useMapData } from "@/features/map-explorer/hooks/useMapData";
-import { POI_TYPE_STYLE } from "@/features/map-explorer/constants/poiTypeStyle";
-import { isCustomPoi, type PoiType } from "@/features/map-explorer/types/types";
+import { PoiType } from "../types/types";
+import { POI_TYPE_STYLE } from "../constants/const";
+import { isCustomPoi } from "../utils/helpers";
 
 // Zoom at which each type's pins appear. Mountains show early (they're sparse landmarks);
 // campsites are dense, so they come in a touch later.

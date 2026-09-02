@@ -8,8 +8,7 @@ import type {
   POI,
   POIDataMap,
 } from "@/features/map-explorer/types/types";
-import type { PanelView } from "@/features/map-explorer/hooks/useMapNavigation";
-import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
+import type { PanelView, POIUpdate } from "@/features/map-explorer/types/types";
 import CountyPanel from "./CountyPanel";
 import CityPanel from "./CityPanel";
 import PoiPanel from "./PoiPanel";

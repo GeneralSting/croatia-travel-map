@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { useMapData } from "@/features/map-explorer/hooks/useMapData";
-import { CITY_MIN_ZOOM, POI_TYPE_STYLE } from "@/features/map-explorer/constants/poiTypeStyle";
+import { CITY_MIN_ZOOM, POI_TYPE_STYLE } from "../constants/const";
 
 // One divIcon per selected/not state — reused across all city markers.
 const cityIconCache = new Map<string, L.DivIcon>();

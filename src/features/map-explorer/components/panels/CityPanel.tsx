@@ -7,7 +7,7 @@ import {
   getGradientColor,
 } from "@/features/map-explorer/utils/selectors";
 import { useMapData } from "@/features/map-explorer/hooks/useMapData";
-import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
+import type { POIUpdate } from "@/features/map-explorer/types/types";
 import { X, ChevronLeft, MapPin } from "lucide-react";
 import POICard from "./POICard";
 

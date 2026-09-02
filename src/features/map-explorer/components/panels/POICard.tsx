@@ -7,7 +7,7 @@ import type {
   POIRecord,
   POIStatus,
 } from "@/features/map-explorer/types/types";
-import type { POIUpdate } from "@/features/map-explorer/hooks/useTravelData";
+import type { POIUpdate } from "@/features/map-explorer/types/types";
 import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 import { useAuth } from "@/features/auth-portal";
 import { AUTH_PATHS } from "@/lib/data";

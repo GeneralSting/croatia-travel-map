@@ -9,8 +9,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import type { PoiType } from "@/features/map-explorer/types/types";
-import { POI_TYPE_STYLE } from "@/features/map-explorer/constants/poiTypeStyle";
 import { useMapData } from "@/features/map-explorer/hooks/useMapData";
+import { POI_TYPE_STYLE } from "../constants/const";
 
 interface AddPlaceFormProps {
   lat: number;

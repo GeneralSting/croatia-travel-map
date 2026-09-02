@@ -4,7 +4,8 @@
 // click handler / add-place form. Everything that lives *inside* <MapContainer> lives here, so the
 // orchestrator (CroatiaMap) only has to wire props, not the whole layer stack.
 
-import { MapContainer, ZoomControl } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, ZoomControl, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import type { FeatureCollection } from "geojson";
 import "leaflet/dist/leaflet.css";
@@ -16,6 +17,20 @@ import MapClickHandler from "@/features/map-explorer/components/MapClickHandler"
 import AddPlaceForm from "@/features/map-explorer/components/AddPlaceForm";
 
 const MAP_CENTER: LatLngExpression = [45.1, 16.45];
+
+// Dev/e2e ONLY (stripped from production builds by the guard at its call site): exposes the Leaflet
+// map instance on window so end-to-end tests can convert a known coordinate to a pixel and drive
+// the map deterministically — instead of guessing which pixel lands on Croatian soil.
+function MapTestBridge() {
+  const map = useMap();
+  useEffect(() => {
+    (window as unknown as { __leafletMap?: unknown }).__leafletMap = map;
+    return () => {
+      delete (window as unknown as { __leafletMap?: unknown }).__leafletMap;
+    };
+  }, [map]);
+  return null;
+}
 
 interface MapCanvasProps {
   geoJson: FeatureCollection;
@@ -65,6 +80,7 @@ export default function MapCanvas({
       attributionControl={false}
     >
       <ZoomControl position="topleft" />
+      {process.env.NODE_ENV !== "production" && <MapTestBridge />}
       <MapShapes
         counties={geoJson}
         islands={islands}

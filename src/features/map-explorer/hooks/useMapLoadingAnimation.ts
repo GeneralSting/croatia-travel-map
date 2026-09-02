@@ -1,6 +1,6 @@
 import { useEffect, type RefObject } from "react";
 import { SEARCH_PATH } from "@/features/map-explorer/constants/searchPath";
-import { catmullRom } from "@/features/map-explorer/utils/catmullRom";
+import { interpolateCatmullRom } from "../utils/helpers";
 
 interface useMapLoadingAnimationProps {
   magnifierRef: RefObject<HTMLDivElement | null>;
@@ -60,7 +60,7 @@ export function useMapLoadingAnimation({
         Math.sin(segmentInterpolationFactor * Math.PI * 2) * 0.12;
 
       // Interpolate the coordinates using Catmull-Rom math
-      const currentX = catmullRom(
+      const currentX = interpolateCatmullRom(
         getPointAtRelativeIndex(-1)[0],
         getPointAtRelativeIndex(0)[0],
         getPointAtRelativeIndex(1)[0],
@@ -68,7 +68,7 @@ export function useMapLoadingAnimation({
         easedSegmentFactor,
       );
 
-      const currentY = catmullRom(
+      const currentY = interpolateCatmullRom(
         getPointAtRelativeIndex(-1)[1],
         getPointAtRelativeIndex(0)[1],
         getPointAtRelativeIndex(1)[1],
