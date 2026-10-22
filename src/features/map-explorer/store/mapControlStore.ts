@@ -40,6 +40,12 @@ export interface PlaceTarget {
 
 export interface MapControlState {
   view: PanelView | null;
+  /**
+   * Who last changed `view`: "user" (clicks, via setView) or "api" (showPoi/showCity/focusCounty)
+   * Lets listeners react to the user's own navigation only - e.g. the voice assistant tells the agent
+   * what the user opened, but not what the agent itself just showed
+   */
+  viewSource: "user" | "api";
   showPoiNames: boolean;
   hiddenTypes: ReadonlySet<PoiType>; // a type is shown unless it is in here
   showCustom: boolean; // "My places" - the user's custom POIs, independent of the type filters
@@ -71,6 +77,7 @@ export type MapControlStore = MapControlState & MapControlActions;
 
 const initialState: MapControlState = {
   view: null,
+  viewSource: "user",
   showPoiNames: true,
   hiddenTypes: new Set(),
   showCustom: true,
@@ -95,6 +102,7 @@ export function createMapControlStore(
       setView: (next) =>
         set((state) => ({
           view: typeof next === "function" ? next(state.view) : next,
+          viewSource: "user",
         })),
 
       toggleNames: () => set((state) => ({ showPoiNames: !state.showPoiNames })),
@@ -110,17 +118,17 @@ export function createMapControlStore(
       toggleCustom: () => set((state) => ({ showCustom: !state.showCustom })),
 
       showPoi: ({ id, countyId, lat, lng }) => {
-        set({ view: { kind: "poi", poiId: id, countyId } });
+        set({ view: { kind: "poi", poiId: id, countyId }, viewSource: "api" });
         requestCamera({ kind: "point", lat, lng, zoom: FOCUS_ZOOM });
       },
 
       showCity: ({ id, countyId, lat, lng }) => {
-        set({ view: { kind: "city", cityId: id, countyId } });
+        set({ view: { kind: "city", cityId: id, countyId }, viewSource: "api" });
         requestCamera({ kind: "point", lat, lng, zoom: FOCUS_ZOOM });
       },
 
       focusCounty: (countyId) => {
-        set({ view: { kind: "county", countyId } });
+        set({ view: { kind: "county", countyId }, viewSource: "api" });
         requestCamera({ kind: "county", countyId });
       },
 

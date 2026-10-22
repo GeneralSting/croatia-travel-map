@@ -4,6 +4,8 @@
 
 import type {
   City,
+  County,
+  CountyDataMap,
   POI,
   POIDataMap,
 } from "@/features/map-explorer/types/types";
@@ -57,6 +59,27 @@ export function percentVisited(pois: POI[], poiDataMap: POIDataMap): number {
     (poi) => poiDataMap[poi.id]?.status === "visited",
   ).length;
   return Math.round((visited / pois.length) * 100);
+}
+
+/**
+ * Each county's explored percentage: the user's manual override when set, otherwise computed from its
+ * visited default POIs. Shared by the map colouring and the voice assistant, so both report the same
+ */
+export function computeCountyPercents(
+  counties: County[],
+  poiDataMap: POIDataMap,
+  countyDataMap: CountyDataMap,
+  getVisitedPercent: (countyId: string, poiDataMap: POIDataMap) => number,
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const county of counties) {
+    const record = countyDataMap[county.id];
+    result[county.id] =
+      record?.is_manual_override && record.visited_percent != null
+        ? record.visited_percent
+        : getVisitedPercent(county.id, poiDataMap);
+  }
+  return result;
 }
 
 /** Cover image path for a city, falling back to the `/cities/<id>.jpg` convention. */

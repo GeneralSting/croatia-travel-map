@@ -6,6 +6,7 @@ import { useTravelData } from "../hooks/useTravelData";
 import { useMapNavigation } from "../hooks/useMapNavigation";
 import { usePlacement } from "../hooks/usePlacement";
 import { SCREEN_BG } from "../constants/const";
+import { computeCountyPercents } from "../utils/selectors";
 import MapLoading from "./MapLoading";
 import MapCanvas from "./MapCanvas";
 import PlacementPill from "./PlacementPill";
@@ -61,18 +62,16 @@ export function CroatiaMapView({ children }: { children?: ReactNode }) {
   });
 
   // County visited percents (auto from POIs, or a manual override)
-  const countyPercents = useMemo(() => {
-    const result: Record<string, number> = {};
-    counties.forEach((county) => {
-      const record = countyDataMap[county.id];
-      if (record?.is_manual_override && record?.visited_percent != null) {
-        result[county.id] = record.visited_percent;
-      } else {
-        result[county.id] = getVisitedPercent(county.id, poiDataMap);
-      }
-    });
-    return result;
-  }, [counties, poiDataMap, countyDataMap, getVisitedPercent]);
+  const countyPercents = useMemo(
+    () =>
+      computeCountyPercents(
+        counties,
+        poiDataMap,
+        countyDataMap,
+        getVisitedPercent,
+      ),
+    [counties, poiDataMap, countyDataMap, getVisitedPercent],
+  );
 
   const handleDeletePoi = useCallback(
     (poiId: string) => {

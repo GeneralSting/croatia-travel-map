@@ -81,6 +81,15 @@ describe("mapControlStore", () => {
     expect(store.getState().highlightedIds.size).toBe(0);
   });
 
+  it("records whether the user or the programmatic API changed the view", () => {
+    const store = createMapControlStore();
+    store.getState().showPoi(PLACE);
+    expect(store.getState().viewSource).toBe("api");
+
+    store.getState().setView(null); // e.g. the user closes the panel
+    expect(store.getState().viewSource).toBe("user");
+  });
+
   it("each store instance has its own state (one per mounted map)", () => {
     const a = createMapControlStore();
     const b = createMapControlStore();

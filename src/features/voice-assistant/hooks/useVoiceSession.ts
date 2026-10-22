@@ -9,6 +9,7 @@ import {
 } from "@elevenlabs/react";
 import { MAX_SESSION_MS } from "@/features/voice-assistant/constants/config";
 import { requestMicrophoneAccess } from "@/features/voice-assistant/utils/microphone";
+import { cleanAgentText } from "@/features/voice-assistant/utils/transcript";
 import {
   requestConversationToken,
   VoiceTokenRequestError,
@@ -70,8 +71,10 @@ export function useVoiceSession() {
         connectionType: "webrtc",
         onConnect: () => setPreparing(null),
         onMessage: ({ message, role }) => {
+          const text = role === "agent" ? cleanAgentText(message) : message;
+          if (!text) return;
           const id = nextEntryId.current++;
-          setTranscript((entries) => [...entries, { id, role, text: message }]);
+          setTranscript((entries) => [...entries, { id, role, text }]);
         },
         onError: () => {
           setPreparing(null);
