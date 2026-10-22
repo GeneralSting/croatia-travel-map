@@ -15,20 +15,32 @@ import PlaceMarkers from "@/features/map-explorer/components/PlaceMarkers";
 import PoiMarkers from "@/features/map-explorer/components/PoiMarkers";
 import MapClickHandler from "@/features/map-explorer/components/MapClickHandler";
 import AddPlaceForm from "@/features/map-explorer/components/AddPlaceForm";
+import MapCameraController from "@/features/map-explorer/components/MapCameraController";
+import { useMapControlApi } from "@/features/map-explorer/hooks/useMapControl";
 
 const MAP_CENTER: LatLngExpression = [45.1, 16.45];
 
+interface TestBridgeWindow {
+  __leafletMap?: unknown;
+  __mapControl?: unknown;
+}
+
 // Dev/e2e ONLY (stripped from production builds by the guard at its call site): exposes the Leaflet
 // map instance on window so end-to-end tests can convert a known coordinate to a pixel and drive
-// the map deterministically — instead of guessing which pixel lands on Croatian soil.
+// the map deterministically — instead of guessing which pixel lands on Croatian soil. Also exposes
+// the map-control store, so e2e can call the same programmatic API the voice tools use.
 function MapTestBridge() {
   const map = useMap();
+  const mapControl = useMapControlApi();
   useEffect(() => {
-    (window as unknown as { __leafletMap?: unknown }).__leafletMap = map;
+    const bridge = window as unknown as TestBridgeWindow;
+    bridge.__leafletMap = map;
+    bridge.__mapControl = mapControl;
     return () => {
-      delete (window as unknown as { __leafletMap?: unknown }).__leafletMap;
+      delete bridge.__leafletMap;
+      delete bridge.__mapControl;
     };
-  }, [map]);
+  }, [map, mapControl]);
   return null;
 }
 
@@ -81,6 +93,7 @@ export default function MapCanvas({
     >
       <ZoomControl position="topleft" />
       {process.env.NODE_ENV !== "production" && <MapTestBridge />}
+      <MapCameraController counties={geoJson} islands={islands} />
       <MapShapes
         counties={geoJson}
         islands={islands}

@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { useMapData } from "@/features/map-explorer/hooks/useMapData";
+import { useMapControl } from "@/features/map-explorer/hooks/useMapControl";
 import { PoiType } from "../types/types";
 import { POI_TYPE_STYLE } from "../constants/const";
 import { isCustomPoi } from "../utils/helpers";
@@ -24,16 +25,21 @@ function minZoomFor(type: PoiType): number {
   return TYPE_MIN_ZOOM[type] ?? POI_MIN_ZOOM;
 }
 
-// One divIcon per (type, selected) combination — cheap to cache and reuse across markers.
+// One divIcon per (type, selected, highlighted) combination — cheap to cache and reuse across markers.
 const iconCache = new Map<string, L.DivIcon>();
-function poiIcon(type: PoiType, selected: boolean): L.DivIcon {
-  const key = `${type}:${selected}`;
+function poiIcon(
+  type: PoiType,
+  selected: boolean,
+  highlighted: boolean,
+): L.DivIcon {
+  const key = `${type}:${selected}:${highlighted}`;
   let icon = iconCache.get(key);
   if (!icon) {
     const { icon: emoji, color } = POI_TYPE_STYLE[type];
+    const modifiers = `${selected ? " cx-poi-pin--sel" : ""}${highlighted ? " cx-poi-pin--hl" : ""}`;
     icon = L.divIcon({
       className: "cx-poi-icon",
-      html: `<span class="cx-poi-pin${selected ? " cx-poi-pin--sel" : ""}" style="--poi:${color}">${emoji}</span>`,
+      html: `<span class="cx-poi-pin${modifiers}" style="--poi:${color}">${emoji}</span>`,
       iconSize: [26, 26],
       iconAnchor: [13, 13],
     });
@@ -70,6 +76,7 @@ export default function PoiMarkers({
   showCustom,
 }: PoiMarkersProps) {
   const { mappablePois } = useMapData();
+  const highlightedIds = useMapControl((state) => state.highlightedIds);
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
@@ -88,8 +95,10 @@ export default function PoiMarkers({
   );
 
   // Custom POIs follow the "My places" toggle; defaults follow their type toggle. Zoom reveal
-  // applies to both so a zoomed-out map stays clean.
+  // applies to both so a zoomed-out map stays clean. Highlighted pins (e.g. search results) are
+  // always shown — a highlight the user can't see would be pointless
   const visible = markers.filter((marker) => {
+    if (highlightedIds.has(marker.id)) return true;
     const originVisible = marker.isCustom
       ? showCustom
       : enabledTypes[marker.type];
@@ -102,8 +111,18 @@ export default function PoiMarkers({
         <Marker
           key={marker.id}
           position={[marker.lat, marker.lng]}
-          icon={poiIcon(marker.type, selectedPoi === marker.id)}
-          zIndexOffset={selectedPoi === marker.id ? 1000 : 0}
+          icon={poiIcon(
+            marker.type,
+            selectedPoi === marker.id,
+            highlightedIds.has(marker.id),
+          )}
+          zIndexOffset={
+            selectedPoi === marker.id
+              ? 1000
+              : highlightedIds.has(marker.id)
+                ? 500
+                : 0
+          }
           eventHandlers={{ click: () => onPoiClick(marker.id) }}
         >
           {/* key forces Leaflet to rebind when the permanent/hover mode changes */}
