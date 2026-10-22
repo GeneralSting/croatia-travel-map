@@ -24,6 +24,13 @@ interface MapBridge {
     zoom: number,
     opts?: { animate?: boolean },
   ): void;
+  getCenter(): { lat: number; lng: number };
+  getZoom(): number;
+}
+
+// The map-control store exposed by the same bridge (window.__mapControl); actions are looked up by name
+interface MapControlBridge {
+  getState(): Record<string, (...args: unknown[]) => void>;
 }
 
 // Resolve once the dev-only map bridge is exposed on the page
@@ -84,5 +91,30 @@ export function setView(
       });
     },
     { coordinates: targetCoordinates, zoom: zoomLevel },
+  );
+}
+
+// Current camera position, read straight from Leaflet
+export function getMapView(page: Page): Promise<LatLng & { zoom: number }> {
+  return page.evaluate(() => {
+    const mapInstance = (window as unknown as { __leafletMap: MapBridge })
+      .__leafletMap;
+    const center = mapInstance.getCenter();
+    return { lat: center.lat, lng: center.lng, zoom: mapInstance.getZoom() };
+  });
+}
+
+/**
+ * Call a map-control store action (showPoi, focusCounty, highlightPlaces...) by name - the same
+ * programmatic API the voice assistant's tools use. Arguments must be JSON-serialisable
+ */
+export function callMapControl(page: Page, action: string, ...args: unknown[]) {
+  return page.evaluate(
+    ({ actionName, actionArgs }) => {
+      const store = (window as unknown as { __mapControl: MapControlBridge })
+        .__mapControl;
+      store.getState()[actionName](...actionArgs);
+    },
+    { actionName: action, actionArgs: args },
   );
 }

@@ -1,17 +1,22 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { PoiType } from "@/features/map-explorer/types/types";
+import { useMapControl } from "@/features/map-explorer/hooks/useMapControl";
 
 /**
  * Map display + filter state. Types default to enabled (a type is off only while in `hiddenTypes`),
  * so the filter doesn't need the full type list at mount. "My places" toggles the user's custom
- * POIs independently of the type filters.
+ * POIs independently of the type filters. The state lives in the map-control store, so code outside
+ * the toolbar (e.g. voice tools) can change the same filters
  */
 export function useMapFilters(poiTypeOrder: PoiType[]) {
-  const [showPoiNames, setShowPoiNames] = useState(true);
-  const [hiddenTypes, setHiddenTypes] = useState<Set<PoiType>>(new Set());
-  const [showCustom, setShowCustom] = useState(true);
+  const showPoiNames = useMapControl((state) => state.showPoiNames);
+  const hiddenTypes = useMapControl((state) => state.hiddenTypes);
+  const showCustom = useMapControl((state) => state.showCustom);
+  const toggleNames = useMapControl((state) => state.toggleNames);
+  const toggleType = useMapControl((state) => state.toggleType);
+  const toggleCustom = useMapControl((state) => state.toggleCustom);
 
   const enabledTypes = useMemo(
     () =>
@@ -20,18 +25,6 @@ export function useMapFilters(poiTypeOrder: PoiType[]) {
       ) as Record<PoiType, boolean>,
     [poiTypeOrder, hiddenTypes],
   );
-
-  const toggleType = useCallback((type: PoiType) => {
-    setHiddenTypes((prev) => {
-      const next = new Set(prev);
-      if (next.has(type)) next.delete(type);
-      else next.add(type);
-      return next;
-    });
-  }, []);
-
-  const toggleNames = useCallback(() => setShowPoiNames((value) => !value), []);
-  const toggleCustom = useCallback(() => setShowCustom((value) => !value), []);
 
   return {
     showPoiNames,
