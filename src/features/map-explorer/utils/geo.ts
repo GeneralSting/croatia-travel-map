@@ -135,3 +135,43 @@ export function findCountyId(
   }
   return bestId;
 }
+
+// [[south, west], [north, east]] - the shape Leaflet's fitBounds/flyToBounds accept
+export type BoundsTuple = [[number, number], [number, number]];
+
+/** Bounding box of a set of [lat, lng] points, or null when there are none. */
+export function pointsBounds(points: [number, number][]): BoundsTuple | null {
+  if (!points.length) return null;
+  let south = Infinity, west = Infinity, north = -Infinity, east = -Infinity;
+  for (const [lat, lng] of points) {
+    south = Math.min(south, lat);
+    north = Math.max(north, lat);
+    west = Math.min(west, lng);
+    east = Math.max(east, lng);
+  }
+  return [[south, west], [north, east]];
+}
+
+/**
+ * Bounding box of a county: its parcel plus every breakout island that belongs to it (islands are a
+ * separate layer, so a county like Split-Dalmatia would otherwise frame only its mainland). Null when
+ * the county has no geometry loaded
+ */
+export function countyBounds(
+  countyId: string,
+  counties: FeatureCollection | null,
+  islands: FeatureCollection | null,
+): BoundsTuple | null {
+  const points: [number, number][] = [];
+  for (const fc of [counties, islands]) {
+    for (const f of fc?.features ?? []) {
+      const id = (f.properties as { county_id?: string } | null)?.county_id;
+      if (id !== countyId || !f.geometry) continue;
+      for (const poly of polygonsOf(f.geometry)) {
+        // The outer ring bounds the polygon; holes are inside it
+        for (const [lng, lat] of poly[0] ?? []) points.push([lat, lng]);
+      }
+    }
+  }
+  return pointsBounds(points);
+}

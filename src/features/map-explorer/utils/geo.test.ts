@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { findCountyId, isNearCroatia, pointInGeometry } from "./geo";
+import {
+  countyBounds,
+  findCountyId,
+  isNearCroatia,
+  pointInGeometry,
+} from "./geo";
 import {
   makeBoxFeature,
   makeFeatureCollection,
@@ -81,5 +86,34 @@ describe("findCountyId", () => {
 
   it("returns null when no county geometry is available", () => {
     expect(findCountyId(45.5, 15.5, null, null)).toBeNull();
+  });
+});
+
+describe("countyBounds", () => {
+  const counties = makeFeatureCollection([
+    makeBoxFeature("split", { minLng: 16, minLat: 43, maxLng: 17, maxLat: 44 }),
+    makeBoxFeature("zadar", { minLng: 15, minLat: 44, maxLng: 16, maxLat: 45 }),
+  ]);
+  // An island of Split south-west of its mainland box - must be framed too
+  const islands = makeFeatureCollection([
+    makeBoxFeature("split", { minLng: 15.5, minLat: 42.5, maxLng: 15.8, maxLat: 42.8 }),
+  ]);
+
+  it("frames the county parcel together with its islands", () => {
+    expect(countyBounds("split", counties, islands)).toEqual([
+      [42.5, 15.5],
+      [44, 17],
+    ]);
+  });
+
+  it("ignores other counties and works without an islands layer", () => {
+    expect(countyBounds("zadar", counties, null)).toEqual([
+      [44, 15],
+      [45, 16],
+    ]);
+  });
+
+  it("returns null for an unknown county", () => {
+    expect(countyBounds("nowhere", counties, islands)).toBeNull();
   });
 });

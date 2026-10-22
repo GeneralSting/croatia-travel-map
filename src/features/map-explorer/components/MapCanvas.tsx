@@ -15,6 +15,7 @@ import PlaceMarkers from "@/features/map-explorer/components/PlaceMarkers";
 import PoiMarkers from "@/features/map-explorer/components/PoiMarkers";
 import MapClickHandler from "@/features/map-explorer/components/MapClickHandler";
 import AddPlaceForm from "@/features/map-explorer/components/AddPlaceForm";
+import MapCameraController from "@/features/map-explorer/components/MapCameraController";
 
 const MAP_CENTER: LatLngExpression = [45.1, 16.45];
 
@@ -81,6 +82,7 @@ export default function MapCanvas({
     >
       <ZoomControl position="topleft" />
       {process.env.NODE_ENV !== "production" && <MapTestBridge />}
+      <MapCameraController counties={geoJson} islands={islands} />
       <MapShapes
         counties={geoJson}
         islands={islands}
