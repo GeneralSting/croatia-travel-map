@@ -206,3 +206,31 @@ body {
 .animate-slide-in {
   animation: slide-in 0.25s ease-out forwards;
 }
+
+/* Voice assistant animations, registered as theme tokens so Tailwind generates `animate-voice-*`
+   utilities - which is what lets components gate them with `motion-safe:` */
+@theme {
+  --animate-voice-panel-in: voice-panel-in 0.2s ease-out;
+  --animate-voice-bar: voice-bar 0.9s ease-in-out infinite;
+
+  @keyframes voice-panel-in {
+    from {
+      transform: translateY(12px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes voice-bar {
+    0%,
+    100% {
+      transform: scaleY(0.35);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+}
