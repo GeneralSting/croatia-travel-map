@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import MapLoading from "./MapLoading";
 
@@ -23,6 +24,11 @@ const CroatiaMap = dynamic(() => import("./CroatiaMap"), {
   ),
 });
 
-export default function MapApp() {
-  return <CroatiaMap />;
+/**
+ * `children` are overlays rendered on top of the map once it has loaded, inside its providers - the
+ * app layer composes other features in here (e.g. the voice assistant) without map-explorer having to
+ * import them
+ */
+export default function MapApp({ children }: { children?: ReactNode }) {
+  return <CroatiaMap>{children}</CroatiaMap>;
 }

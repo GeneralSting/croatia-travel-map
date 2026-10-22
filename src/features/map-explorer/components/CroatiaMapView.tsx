@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, type ReactNode } from "react";
 import { useCroatiaGeoJson } from "../hooks/useCroatiaGeoJson";
 import { useMapData } from "../hooks/useMapData";
 import { useMapFilters } from "../hooks/useMapFilters";
@@ -13,7 +13,8 @@ import MapToolbar from "./MapToolbar";
 import SummaryDrawer from "./panels/SummaryDrawer";
 import MapPanels from "./panels/MapPanels";
 
-export function CroatiaMapView() {
+// `children`: overlays from other features, rendered only once the map is ready (see MapApp)
+export function CroatiaMapView({ children }: { children?: ReactNode }) {
   /**
    * County/island click bubbles to the map click, so while placing a pin we must ignore navigation clicks
    * This ref, kept in sync by usePlacement lets the click handlers read the current placement state without being
@@ -162,6 +163,8 @@ export function CroatiaMapView() {
           />
         )}
       </div>
+
+      {children}
     </div>
   );
 }
