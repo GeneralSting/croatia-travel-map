@@ -9,3 +9,7 @@ export const AUTH_PATHS = {
 export const APP_PATHS = {
   HOME: "/",
 } as const;
+
+export const API_PATHS = {
+  VOICE_TOKEN: "/api/voice/token",
+} as const;

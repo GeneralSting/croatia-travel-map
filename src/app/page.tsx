@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { MapApp } from "@/features/map-explorer";
+import { VoiceAssistant } from "@/features/voice-assistant";
 import { AUTH_PATHS } from "@/lib/data";
 
 interface HomeProps {
@@ -18,5 +19,10 @@ export default async function Home({ searchParams }: HomeProps) {
     redirect(`${AUTH_PATHS.CALLBACK}?${urlSearchParams}`);
   }
 
-  return <MapApp />;
+  // The app layer composes features: the voice assistant renders over the map, inside its providers
+  return (
+    <MapApp>
+      <VoiceAssistant />
+    </MapApp>
+  );
 }
