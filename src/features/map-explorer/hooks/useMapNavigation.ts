@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState, type RefObject } from "react";
-import type { City, PanelView, POI } from "@/features/map-explorer/types/types";
+import { useCallback, useMemo, type RefObject } from "react";
+import type { City, POI } from "@/features/map-explorer/types/types";
+import { useMapControl } from "@/features/map-explorer/hooks/useMapControl";
 
 interface UseMapNavigationArgs {
   getCity: (cityId: string) => City | undefined;
@@ -12,13 +13,16 @@ interface UseMapNavigationArgs {
 /**
  * the tight-hand panel is a small navigation stack: a county view can drill into one of its cities
  * (with a back arrow), a city marker opens the city view directly, and a POI pin opens its detail
+ * The current view lives in the map-control store, so programmatic actions (showPoi, focusCounty...)
+ * open the same panels
  */
 export function useMapNavigation({
   getCity,
   getPoi,
   placingRef,
 }: UseMapNavigationArgs) {
-  const [view, setView] = useState<PanelView | null>(null);
+  const view = useMapControl((state) => state.view);
+  const setView = useMapControl((state) => state.setView);
 
   const openCounty = useCallback(
     (countyId: string) => {
@@ -29,7 +33,7 @@ export function useMapNavigation({
           : { kind: "county", countyId },
       );
     },
-    [placingRef],
+    [placingRef, setView],
   );
 
   const openCity = useCallback(
@@ -39,14 +43,14 @@ export function useMapNavigation({
       if (!city) return;
       setView({ kind: "city", cityId, countyId: city.county_id });
     },
-    [getCity, placingRef],
+    [getCity, placingRef, setView],
   );
 
   const goBackToCounty = useCallback(() => {
     setView((prev) =>
       prev ? { kind: "county", countyId: prev.countyId } : null,
     );
-  }, []);
+  }, [setView]);
 
   // Clicking a pin opens that POI's detail; the county comes from the POI row (default or custom)
   const openPoi = useCallback(
@@ -56,15 +60,15 @@ export function useMapNavigation({
       if (!poi) return;
       setView({ kind: "poi", poiId, countyId: poi.county_id });
     },
-    [getPoi, placingRef],
+    [getPoi, placingRef, setView],
   );
 
   // Open a POI panel directly (used right after creating a custom place — no click guard needed)
   const openPoiPanel = useCallback((poiId: string, countyId: string) => {
     setView({ kind: "poi", poiId, countyId });
-  }, []);
+  }, [setView]);
 
-  const closePanel = useCallback(() => setView(null), []);
+  const closePanel = useCallback(() => setView(null), [setView]);
 
   // The POI currently shown in the panel (any POI — default or the user's own)
   const activePoi = useMemo(
