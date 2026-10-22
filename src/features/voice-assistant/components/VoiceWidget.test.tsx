@@ -128,10 +128,10 @@ describe("VoiceWidget", () => {
     act(() => {
       startOptions().onConnect();
       sdk.set({ status: "connected" });
-      startOptions().onMessage({ message: "Bok! Kamo želiš putovati?", role: "agent" });
+      startOptions().onMessage({ message: "[happy] Bok! Kamo želiš putovati?", role: "agent" });
     });
     expect(screen.getByRole("status").textContent).toBe(VOICE_COPY.status.listening);
-    expect(screen.getByText("Bok! Kamo želiš putovati?")).toBeTruthy();
+    expect(screen.getByText("Bok! Kamo želiš putovati?")).toBeTruthy(); // audio tag not shown
 
     fireEvent.click(screen.getByRole("button", { name: VOICE_COPY.end }));
     expect(sdk.endSession).toHaveBeenCalled();
