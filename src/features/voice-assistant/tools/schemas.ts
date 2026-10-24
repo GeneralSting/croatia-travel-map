@@ -50,6 +50,7 @@ export const searchPlacesSchema = z.object({
   near: optionalText, // a place id (or name) to search around
   radiusKm: z.preprocess(blankToUndefined, z.coerce.number().min(1).max(200).default(50)),
   limit: z.preprocess(blankToUndefined, z.coerce.number().int().min(1).max(20).default(8)),
+  excludeVisited: z.preprocess(blankToUndefined, flag.default(false)), // for recommendations
 });
 
 export const placeIdSchema = z.object({ placeId: requiredText });

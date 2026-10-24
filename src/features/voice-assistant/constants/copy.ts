@@ -15,6 +15,8 @@ export const VOICE_COPY = {
   intro: "Pitaj me o mjestima po Hrvatskoj - mogu ti ih i pokazati na karti.",
   micExplainer:
     "Za razgovor treba pristup mikrofonu. Preglednik će zatražiti dopuštenje, a zvuk se šalje samo dok razgovor traje.",
+  privacyNote: "Govor i transkript obrađuje ElevenLabs.",
+  privacyLink: "Pravila privatnosti",
   start: "Započni razgovor",
   end: "Završi razgovor",
   retry: "Pokušaj ponovno",
@@ -33,6 +35,7 @@ export const VOICE_COPY = {
     error: "Razgovor nije uspio",
   },
 
+  starterLabel: "Probaj pitati",
   transcriptLabel: "Transkript razgovora",
   transcriptEmpty: "Reci nešto - na primjer: „Što vrijedi vidjeti u Istri?”",
   speakerUser: "Ti",

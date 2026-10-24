@@ -101,6 +101,17 @@ describe("search_places", () => {
     expect(byId["my-cabin"].mine).toBe(true);
   });
 
+  it("leaves out visited places when asked to (for recommendations)", () => {
+    const result = parse(
+      tools({ poiDataMap: { "kopacki-rit": { status: "visited" } } }).search_places({
+        near: "osijek",
+        radiusKm: 60,
+        excludeVisited: true,
+      }),
+    );
+    expect(result.results.map((r: { id: string }) => r.id)).toEqual(["dakovo"]);
+  });
+
   it("explains invalid parameters instead of throwing", () => {
     const result = parse(tools().search_places({ limit: 500 }));
     expect(result).toMatchObject({ ok: false, error: "invalid_parameters" });
@@ -238,6 +249,10 @@ describe("get_user_progress", () => {
     expect(result.wishlist).toEqual([{ id: "kopacki-rit", name: "Kopački Rit", county: "Osječko-baranjska županija" }]);
     expect(result.not_started_counties).toContain("Istarska županija");
     expect(result.not_started_counties).not.toContain("Ličko-senjska županija");
+
+    // Lika is fully explored, so it isn't among the emptiest regions; its region reports 100 %
+    expect(result.least_explored_regions.map((r: { region: string }) => r.region)).not.toContain("lika");
+    expect(result.regions.find((r: { region: string }) => r.region === "lika").explored_percent).toBe(100);
   });
 });
 

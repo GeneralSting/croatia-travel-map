@@ -9,8 +9,10 @@ import type {
 import { buildPlaceIndex, resolvePlace, searchPlaces, type Place } from "./places";
 import {
   COUNTY_NAME_HR,
+  PRIMARY_REGION_IDS,
   REGION_ALIASES,
   REGIONS,
+  regionExploredPercent,
   regionOfCounty,
   type RegionId,
 } from "./regions";
@@ -126,7 +128,7 @@ export function createVoiceTools(deps: VoiceToolDeps): Record<VoiceToolName, Voi
     search_places(params) {
       const parsed = searchPlacesSchema.safeParse(params);
       if (!parsed.success) return invalidParams(parsed.error);
-      const { query, county, category, near, radiusKm, limit } = parsed.data;
+      const { query, county, category, near, radiusKm, limit, excludeVisited } = parsed.data;
       let region = parsed.data.region;
 
       let countyIds: string[] | undefined;
@@ -156,12 +158,22 @@ export function createVoiceTools(deps: VoiceToolDeps): Record<VoiceToolName, Voi
         nearCriteria = { lat: origin.lat, lng: origin.lng, excludeId: origin.id, radiusKm };
       }
 
+      // Only meaningful for a signed-in user - a guest has no visits to exclude
+      const visitedIds = excludeVisited
+        ? new Set(
+            Object.entries(deps.poiDataMap)
+              .filter(([, record]) => record?.status === "visited")
+              .map(([id]) => id),
+          )
+        : undefined;
+
       const { total, hits } = searchPlaces(places, {
         query,
         countyIds,
         region,
         category,
         near: nearCriteria,
+        excludeIds: visitedIds,
         limit,
       });
 
@@ -200,21 +212,28 @@ export function createVoiceTools(deps: VoiceToolDeps): Record<VoiceToolName, Voi
         explored_percent: deps.countyPercents[county.id] ?? 0,
       }));
 
+      const regionSummary = PRIMARY_REGION_IDS.map((id) => ({
+        region: id,
+        label: REGIONS[id].label,
+        explored_percent: regionExploredPercent(id, deps.countyPercents),
+      }));
+
       return ok({
         totals: { visited: visited.length, want_to_visit: wishlist.length },
-        regions: Object.entries(REGIONS)
-          .filter(([id]) => id !== "obala")
-          .map(([id, region]) => ({
-            region: id,
-            label: region.label,
-            counties: countySummary
-              .filter((county) => county.region === id)
-              .map(({ id: countyId, name, explored_percent }) => ({
-                id: countyId,
-                name,
-                explored_percent,
-              })),
-          })),
+        // Emptiest first - the natural place to recommend something new
+        least_explored_regions: [...regionSummary]
+          .sort((a, b) => a.explored_percent - b.explored_percent)
+          .slice(0, 3),
+        regions: regionSummary.map((region) => ({
+          ...region,
+          counties: countySummary
+            .filter((county) => county.region === region.region)
+            .map(({ id: countyId, name, explored_percent }) => ({
+              id: countyId,
+              name,
+              explored_percent,
+            })),
+        })),
         not_started_counties: countySummary
           .filter((county) => county.explored_percent === 0)
           .map((county) => county.name),

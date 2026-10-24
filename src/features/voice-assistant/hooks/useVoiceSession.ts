@@ -33,7 +33,7 @@ import type {
  * https://elevenlabs.io/docs/agents-platform/libraries/react
  */
 export function useVoiceSession() {
-  const { startSession, endSession } = useConversationControls();
+  const { startSession, endSession, sendUserMessage } = useConversationControls();
   const { status } = useConversationStatus();
   const { isSpeaking } = useConversationMode();
   const { isMuted, setMuted } = useConversationInput();
@@ -44,6 +44,25 @@ export function useVoiceSession() {
   const [sessionLimitReached, setSessionLimitReached] = useState(false);
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const nextEntryId = useRef(0);
+  // A starter prompt picked before the session existed - sent as soon as the session connects
+  const pendingMessage = useRef<string | null>(null);
+
+  const addEntry = useCallback((role: TranscriptEntry["role"], text: string) => {
+    const id = nextEntryId.current++;
+    setTranscript((entries) => [...entries, { id, role, text }]);
+  }, []);
+
+  /**
+   * Send typed text as the user's turn (starter prompts). The SDK doesn't echo typed messages back
+   * through onMessage, so the transcript entry is added here
+   */
+  const sendText = useCallback(
+    (text: string) => {
+      sendUserMessage(text);
+      addEntry("user", text);
+    },
+    [sendUserMessage, addEntry],
+  );
 
   const start = useCallback(async () => {
     if (preparing || status === "connecting" || status === "connected") return;
@@ -55,6 +74,7 @@ export function useVoiceSession() {
     const microphone = await requestMicrophoneAccess();
     if (microphone !== "granted") {
       setPreparing(null);
+      pendingMessage.current = null;
       setError(microphone === "denied" ? "mic_denied" : "mic_unavailable");
       return;
     }
@@ -69,12 +89,15 @@ export function useVoiceSession() {
       startSession({
         conversationToken,
         connectionType: "webrtc",
-        onConnect: () => setPreparing(null),
+        onConnect: () => {
+          setPreparing(null);
+          const queued = pendingMessage.current;
+          pendingMessage.current = null;
+          if (queued) sendText(queued);
+        },
         onMessage: ({ message, role }) => {
           const text = role === "agent" ? cleanAgentText(message) : message;
-          if (!text) return;
-          const id = nextEntryId.current++;
-          setTranscript((entries) => [...entries, { id, role, text }]);
+          if (text) addEntry(role, text);
         },
         onError: () => {
           setPreparing(null);
@@ -87,18 +110,33 @@ export function useVoiceSession() {
       });
     } catch (requestError) {
       setPreparing(null);
+      pendingMessage.current = null;
       setError(
         requestError instanceof VoiceTokenRequestError
           ? requestError.kind
           : "network",
       );
     }
-  }, [preparing, status, startSession]);
+  }, [preparing, status, startSession, sendText, addEntry]);
 
   const end = useCallback(() => {
     setPreparing(null);
+    pendingMessage.current = null;
     endSession();
   }, [endSession]);
+
+  // Ask a starter prompt: straight away in a live conversation, otherwise start one and ask on connect
+  const ask = useCallback(
+    (text: string) => {
+      if (status === "connected") {
+        sendText(text);
+        return;
+      }
+      pendingMessage.current = text;
+      void start();
+    },
+    [status, sendText, start],
+  );
 
   // Hard cap on the session length - voice minutes are billed, and a forgotten open mic shouldn't run on
   useEffect(() => {
@@ -136,5 +174,6 @@ export function useVoiceSession() {
     toggleMute: () => setMuted(!isMuted),
     start,
     end,
+    ask,
   };
 }

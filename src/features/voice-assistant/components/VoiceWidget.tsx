@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useAuth } from "@/features/auth-portal";
 import { useVoiceSession } from "@/features/voice-assistant/hooks/useVoiceSession";
+import { useStarterPrompts } from "@/features/voice-assistant/hooks/useStarterPrompts";
+import { useReserveMapArea } from "@/features/voice-assistant/hooks/useReserveMapArea";
 import VoiceButton from "@/features/voice-assistant/components/VoiceButton";
 import VoicePanel from "@/features/voice-assistant/components/VoicePanel";
 
@@ -16,11 +18,15 @@ import VoicePanel from "@/features/voice-assistant/components/VoicePanel";
 export default function VoiceWidget() {
   const { user } = useAuth();
   const session = useVoiceSession();
+  const starterPrompts = useStarterPrompts();
   const [open, setOpen] = useState(false);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const primaryActionRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
   const returnFocus = useRef(false); // only move focus back when the user closed the panel themselves
+
+  useReserveMapArea(panelRef, open);
 
   useEffect(() => {
     if (open) primaryActionRef.current?.focus();
@@ -50,14 +56,17 @@ export default function VoiceWidget() {
       {open && (
         <div onKeyDown={handleKeyDown}>
           <VoicePanel
+            panelRef={panelRef}
             primaryActionRef={primaryActionRef}
             signedIn={!!user}
             phase={session.phase}
             error={session.error}
             sessionLimitReached={session.sessionLimitReached}
             transcript={session.transcript}
+            starterPrompts={starterPrompts}
             isMuted={session.isMuted}
             onStart={session.start}
+            onPrompt={session.ask}
             onEnd={session.end}
             onToggleMute={session.toggleMute}
             onMinimize={minimize}

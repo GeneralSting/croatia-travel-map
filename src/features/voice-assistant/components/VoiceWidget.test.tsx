@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/msw/server";
-import { MAX_SESSION_MS } from "@/features/voice-assistant/constants/config";
+import { MAX_SESSION_MS, VOICE_PRIVACY_URL } from "@/features/voice-assistant/constants/config";
 import { VOICE_COPY, VOICE_ERROR_COPY } from "@/features/voice-assistant/constants/copy";
 import VoiceWidget from "./VoiceWidget";
 
@@ -40,6 +40,7 @@ const sdk = vi.hoisted(() => {
     },
     startSession: vi.fn(),
     endSession: vi.fn(),
+    sendUserMessage: vi.fn(),
     setMuted: vi.fn(),
   };
 });
@@ -51,6 +52,7 @@ vi.mock("@elevenlabs/react", async () => {
     useConversationControls: () => ({
       startSession: sdk.startSession,
       endSession: sdk.endSession,
+      sendUserMessage: sdk.sendUserMessage,
     }),
     useConversationStatus: () => ({ status: useSdk().status }),
     useConversationMode: () => ({ isSpeaking: useSdk().isSpeaking }),
@@ -60,6 +62,18 @@ vi.mock("@elevenlabs/react", async () => {
 
 const auth = vi.hoisted(() => ({ user: null as { id: string } | null }));
 vi.mock("@/features/auth-portal", () => ({ useAuth: () => ({ user: auth.user }) }));
+
+// The map's camera insets: the widget reserves the panel's screen area while it's open
+const setCameraInsets = vi.fn();
+vi.mock("@/features/map-explorer", () => ({
+  useMapControlApi: () => ({ getState: () => ({ setCameraInsets }) }),
+}));
+
+// Starter prompts come from the map's progress data - tested on their own in starterPrompts.test.ts
+const STARTER = "Preporuči mi nešto u Slavoniji";
+vi.mock("@/features/voice-assistant/hooks/useStarterPrompts", () => ({
+  useStarterPrompts: () => [STARTER],
+}));
 
 const getUserMedia = vi.fn();
 const stopTrack = vi.fn();
@@ -108,6 +122,16 @@ describe("VoiceWidget", () => {
     expect(screen.queryByRole("button", { name: VOICE_COPY.start })).toBeNull();
   });
 
+  it("says who processes the voice before a conversation starts", () => {
+    render(<VoiceWidget />);
+    openPanel();
+
+    expect(screen.getByText(VOICE_COPY.privacyNote, { exact: false })).toBeTruthy();
+    const link = screen.getByRole("link", { name: VOICE_COPY.privacyLink });
+    expect(link.getAttribute("href")).toBe(VOICE_PRIVACY_URL);
+    expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
   it("starts a session: mic first, then a token, then the SDK - and shows the live transcript", async () => {
     server.use(
       http.post("*/api/voice/token", () => HttpResponse.json({ token: "tok_123" })),
@@ -135,6 +159,35 @@ describe("VoiceWidget", () => {
 
     fireEvent.click(screen.getByRole("button", { name: VOICE_COPY.end }));
     expect(sdk.endSession).toHaveBeenCalled();
+  });
+
+  it("a starter prompt starts the conversation and is asked as soon as it connects", async () => {
+    server.use(http.post("*/api/voice/token", () => HttpResponse.json({ token: "tok" })));
+    render(<VoiceWidget />);
+    openPanel();
+    fireEvent.click(screen.getByRole("button", { name: STARTER }));
+
+    await waitFor(() => expect(sdk.startSession).toHaveBeenCalledTimes(1));
+    expect(sdk.sendUserMessage).not.toHaveBeenCalled(); // not before the session exists
+
+    act(() => {
+      startOptions().onConnect();
+      sdk.set({ status: "connected" });
+    });
+    expect(sdk.sendUserMessage).toHaveBeenCalledWith(STARTER);
+    // Shown as the user's turn, and the suggestions step aside once something was asked
+    expect(screen.getByRole("list", { name: VOICE_COPY.transcriptLabel }).textContent).toContain(STARTER);
+    expect(screen.queryByRole("button", { name: STARTER })).toBeNull();
+  });
+
+  it("in a live conversation a starter prompt is asked straight away", () => {
+    render(<VoiceWidget />);
+    act(() => sdk.set({ status: "connected" }));
+    fireEvent.click(screen.getByRole("button", { name: VOICE_COPY.activeSession }));
+    fireEvent.click(screen.getByRole("button", { name: STARTER }));
+
+    expect(sdk.sendUserMessage).toHaveBeenCalledWith(STARTER);
+    expect(sdk.startSession).not.toHaveBeenCalled();
   });
 
   it("explains a denied microphone and never requests a token", async () => {
@@ -189,6 +242,15 @@ describe("VoiceWidget", () => {
     expect(screen.queryByRole("region", { name: VOICE_COPY.title })).toBeNull();
     expect(sdk.endSession).not.toHaveBeenCalled();
     expect(document.activeElement?.getAttribute("aria-label")).toBe(VOICE_COPY.activeSession);
+  });
+
+  it("reserves the panel's screen area on the map while open, and releases it when minimised", () => {
+    render(<VoiceWidget />);
+    openPanel();
+    expect(setCameraInsets).toHaveBeenCalledWith(expect.any(Object));
+
+    fireEvent.keyDown(screen.getByRole("region", { name: VOICE_COPY.title }), { key: "Escape" });
+    expect(setCameraInsets).toHaveBeenLastCalledWith(null);
   });
 
   it("ends the session when the widget unmounts (e.g. leaving the map)", () => {

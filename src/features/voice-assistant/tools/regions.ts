@@ -2,12 +2,23 @@
  * Geography the database doesn't have: people say "the east", "Dalmatia" or "the coast", while the
  * data only knows counties. These groupings let search_places filter by region, and the Croatian
  * county names let the agent (and the user) refer to counties the way they're said in Croatian
+ *
+ * Per region, for the starter prompts (Croatian needs the right case, so they're written out):
+ *  - inLabel: "in <region>" (locative) - "Preporuči mi nešto u Slavoniji"
+ *  - nearLabel: an anchor place in the genitive - "Vikend izlet blizu Osijeka"
  */
 
 export const REGIONS = {
-  zagreb: { label: "Zagreb i okolica", counties: ["zagreb-city", "zagreb-county"] },
+  zagreb: {
+    label: "Zagreb i okolica",
+    inLabel: "u Zagrebu i okolici",
+    nearLabel: "Zagreba",
+    counties: ["zagreb-city", "zagreb-county"],
+  },
   sjeverna: {
     label: "Sjeverna Hrvatska (Zagorje, Međimurje, Podravina)",
+    inLabel: "na sjeveru Hrvatske",
+    nearLabel: "Varaždina",
     counties: [
       "krapina-zagorje",
       "varazdin",
@@ -18,10 +29,14 @@ export const REGIONS = {
   },
   sredisnja: {
     label: "Središnja Hrvatska (Banovina, Kordun, Pokuplje)",
+    inLabel: "u središnjoj Hrvatskoj",
+    nearLabel: "Karlovca",
     counties: ["sisak-moslavina", "karlovac"],
   },
   slavonija: {
     label: "Slavonija i Baranja (istok)",
+    inLabel: "u Slavoniji",
+    nearLabel: "Osijeka",
     counties: [
       "osijek-baranja",
       "vukovar-srijem",
@@ -30,18 +45,29 @@ export const REGIONS = {
       "virovitica-podravina",
     ],
   },
-  lika: { label: "Lika", counties: ["lika-senj"] },
+  lika: {
+    label: "Lika",
+    inLabel: "u Lici",
+    nearLabel: "Plitvičkih jezera",
+    counties: ["lika-senj"],
+  },
   istra_kvarner: {
     label: "Istra i Kvarner",
+    inLabel: "u Istri i na Kvarneru",
+    nearLabel: "Rijeke",
     counties: ["istria", "primorje-gorski-kotar"],
   },
   dalmacija: {
     label: "Dalmacija (jug)",
+    inLabel: "u Dalmaciji",
+    nearLabel: "Splita",
     counties: ["zadar", "sibenik-knin", "split-dalmatia", "dubrovnik-neretva"],
   },
   // Overlapping group, for "the coast" / "the sea"
   obala: {
     label: "Jadranska obala",
+    inLabel: "na obali",
+    nearLabel: "mora",
     counties: [
       "istria",
       "primorje-gorski-kotar",
@@ -52,10 +78,29 @@ export const REGIONS = {
       "dubrovnik-neretva",
     ],
   },
-} as const satisfies Record<string, { label: string; counties: readonly string[] }>;
+} as const satisfies Record<
+  string,
+  { label: string; inLabel: string; nearLabel: string; counties: readonly string[] }
+>;
 
 export type RegionId = keyof typeof REGIONS;
 export const REGION_IDS = Object.keys(REGIONS) as [RegionId, ...RegionId[]];
+
+// The non-overlapping regions - every county belongs to exactly one ("obala" spans several)
+export const PRIMARY_REGION_IDS = REGION_IDS.filter((id) => id !== "obala");
+
+/**
+ * A region's explored percentage: the average over its counties (each county weighs the same, so a
+ * big county doesn't hide the empty ones next to it)
+ */
+export function regionExploredPercent(
+  regionId: RegionId,
+  countyPercents: Record<string, number>,
+): number {
+  const counties = REGIONS[regionId].counties;
+  const total = counties.reduce((sum, id) => sum + (countyPercents[id] ?? 0), 0);
+  return Math.round(total / counties.length);
+}
 
 /**
  * Words people use for a region rather than a county. Checked before county matching, because
