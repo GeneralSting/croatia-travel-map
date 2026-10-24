@@ -30,6 +30,19 @@ export interface CameraRequest {
   seq: number;
 }
 
+/**
+ * Screen area (px) covered by floating UI, e.g. the voice assistant's card. Camera fits keep their
+ * targets inside the rest of the map, so nothing they frame ends up hidden behind an overlay
+ */
+export interface CameraInsets {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export const NO_INSETS: CameraInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+
 // A place resolved to coordinates by the caller - the store holds no reference data on purpose
 export interface PlaceTarget {
   id: string;
@@ -51,6 +64,7 @@ export interface MapControlState {
   showCustom: boolean; // "My places" - the user's custom POIs, independent of the type filters
   highlightedIds: ReadonlySet<string>; // POI or city ids drawn with a highlight ring
   camera: CameraRequest | null;
+  cameraInsets: CameraInsets;
 }
 
 export interface MapControlActions {
@@ -71,6 +85,7 @@ export interface MapControlActions {
   showAllTypes(): void;
   highlightPlaces(ids: string[]): void;
   clearHighlights(): void;
+  setCameraInsets(insets: Partial<CameraInsets> | null): void; // null = nothing covered
 }
 
 export type MapControlStore = MapControlState & MapControlActions;
@@ -83,6 +98,7 @@ const initialState: MapControlState = {
   showCustom: true,
   highlightedIds: new Set(),
   camera: null,
+  cameraInsets: NO_INSETS,
 };
 
 export function createMapControlStore(
@@ -149,6 +165,9 @@ export function createMapControlStore(
       highlightPlaces: (ids) => set({ highlightedIds: new Set(ids) }),
 
       clearHighlights: () => set({ highlightedIds: new Set() }),
+
+      setCameraInsets: (insets) =>
+        set({ cameraInsets: insets ? { ...NO_INSETS, ...insets } : NO_INSETS }),
     };
   });
 }

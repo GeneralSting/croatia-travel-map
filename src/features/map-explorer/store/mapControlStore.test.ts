@@ -90,6 +90,15 @@ describe("mapControlStore", () => {
     expect(store.getState().viewSource).toBe("user");
   });
 
+  it("setCameraInsets fills in missing sides; null resets", () => {
+    const store = createMapControlStore();
+    store.getState().setCameraInsets({ left: 336 });
+    expect(store.getState().cameraInsets).toEqual({ top: 0, right: 0, bottom: 0, left: 336 });
+
+    store.getState().setCameraInsets(null);
+    expect(store.getState().cameraInsets).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+  });
+
   it("each store instance has its own state (one per mounted map)", () => {
     const a = createMapControlStore();
     const b = createMapControlStore();
