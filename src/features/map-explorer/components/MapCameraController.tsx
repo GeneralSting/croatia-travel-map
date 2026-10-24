@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import type { FeatureCollection } from "geojson";
-import { useMapControl } from "@/features/map-explorer/hooks/useMapControl";
+import { useMapControl, useMapControlApi } from "@/features/map-explorer/hooks/useMapControl";
 import {
   countyBounds,
   pointsBounds,
@@ -29,6 +29,7 @@ export default function MapCameraController({
 }: MapCameraControllerProps) {
   const map = useMap();
   const camera = useMapControl((state) => state.camera);
+  const store = useMapControlApi(); // insets are read at request time - no re-render needed
   const appliedSeq = useRef(0); // re-renders (e.g. islands loading) must not replay an old request
 
   useEffect(() => {
@@ -65,10 +66,19 @@ export default function MapCameraController({
       map.setView([(south + north) / 2, (west + east) / 2], 9, { animate: false });
       return;
     }
-    const options = { padding: FIT_PADDING, maxZoom: FOCUS_ZOOM };
+    // Keep the framed area clear of floating UI (e.g. the voice assistant's card)
+    const insets = store.getState().cameraInsets;
+    const options = {
+      paddingTopLeft: [FIT_PADDING[0] + insets.left, FIT_PADDING[1] + insets.top] as [number, number],
+      paddingBottomRight: [FIT_PADDING[0] + insets.right, FIT_PADDING[1] + insets.bottom] as [
+        number,
+        number,
+      ],
+      maxZoom: FOCUS_ZOOM,
+    };
     if (animate) map.flyToBounds(bounds, options);
     else map.fitBounds(bounds, { ...options, animate: false });
-  }, [camera, map, counties, islands]);
+  }, [camera, map, counties, islands, store]);
 
   return null;
 }

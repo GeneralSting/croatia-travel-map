@@ -10,7 +10,10 @@ export { useTravelData } from "@/features/map-explorer/hooks/useTravelData";
 export { computeCountyPercents } from "@/features/map-explorer/utils/selectors";
 
 export type { MapData } from "@/features/map-explorer/components/MapDataProvider";
-export type { MapControlStoreApi } from "@/features/map-explorer/store/mapControlStore";
+export type {
+  CameraInsets,
+  MapControlStoreApi,
+} from "@/features/map-explorer/store/mapControlStore";
 export type {
   City,
   County,

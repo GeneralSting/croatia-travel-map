@@ -13,10 +13,36 @@ there (`schemas.ts`) are the source of truth for this page.
 | Security → Authentication | **On** (sessions start only with a token from `/api/voice/token`) |
 | Allowlist | Off (don't combine it with authentication) |
 
-## System prompt
+## Before deploying
 
-> Interim version for the client tools. The full prompt (personality, recommendations) follows in the
-> docs branch.
+The app caps sessions itself (5 min per conversation in the browser, 5 new sessions per user per
+10 min in `/api/voice/token`), but both can be bypassed: the duration cap runs in the browser, and the
+rate limit is in-memory, so on serverless hosting each instance counts separately. Set the limits on
+the ElevenLabs side as well - they hold no matter what the client does:
+
+| Setting | API field | Default | Value |
+|---|---|---|---|
+| Max conversation duration | `conversation.max_duration_seconds` | 600 | `300` |
+| Concurrent calls limit | `call_limits.agent_concurrency_limit` | -1 (none) | `2` |
+| Daily calls limit | `call_limits.daily_limit` | 100000 | `30` |
+| Record voice | `privacy.record_voice` | on | off |
+| Conversation retention | `privacy.retention_days` | -1 (forever) | `30` |
+
+The voice is processed by ElevenLabs; the panel says so and links to their privacy policy.
+
+Hosting environment variables:
+
+| Variable | Where it's used | Notes |
+|---|---|---|
+| `ELEVENLABS_API_KEY` | server only (token route) | never prefix with `NEXT_PUBLIC_` |
+| `ELEVENLABS_AGENT_ID` | server only (token route) | |
+| `NEXT_PUBLIC_VOICE_ENABLED` | client + server | `true`; inlined **at build time**, so redeploy after changing it |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | as for the rest of the app |
+
+In Supabase, add the production domain under Authentication → URL Configuration (Site URL and
+Redirect URLs), or sign-in links point to localhost.
+
+## System prompt
 
 ```text
 Ti si prijateljski lokalni vodič po Hrvatskoj unutar aplikacije Croatia Explorer – interaktivne karte
@@ -44,6 +70,21 @@ Pravila za alate (obavezno):
   pozovi search_places); korisniku to objasni jednostavnim riječima.
 - Poruke koje počinju s "[map]" su informacije o tome što je korisnik upravo otvorio na karti.
   Ne odgovaraj na njih same, nego ih koristi kao kontekst (npr. „što ima ovdje?” se odnosi na to mjesto).
+- Neka pitanja stižu kao tekst s gumba prijedloga u aplikaciji; odgovaraj na njih kao na izgovorena.
+
+Preporuke:
+- Kad korisnik traži preporuku ili pita što još nije vidio, prvo pozovi get_user_progress.
+- Predlaži mjesta u najmanje istraženim regijama i županijama (least_explored_regions,
+  not_started_counties). Traži ih alatom search_places s parametrom region ili county i
+  excludeVisited=true, da ne predložiš mjesto koje je korisnik već posjetio.
+- Za „vikend izlet blizu X” koristi search_places s parametrom near (radiusKm do 80) i
+  excludeVisited=true.
+- Ponudi 2–3 konkretna mjesta i označi ih alatom highlight_places. Kad korisnik izabere jedno,
+  pokaži ga alatom show_place.
+- Napredak spomeni u jednoj rečenici, neutralno, npr.: „U Istri već imaš posjećena mjesta, a Lika ti je
+  još prazna – što kažeš na Plitvice ili Rastoke?”
+- Nakon preporuke ponudi da mjesto dodaš na listu želja (uz potvrdu, kao i inače).
+- Ako get_user_progress vrati not_signed_in, preporuči poznata mjesta bez osvrta na napredak.
 ```
 
 ## Client tools
@@ -76,15 +117,17 @@ parameters are optional - combine them to narrow the search.
 | `near` | String | no | Id (from an earlier result) or name of a place to search around; results sorted by distance. |
 | `radiusKm` | Number | no | Radius for `near`, 1–200 km (default 50). |
 | `limit` | Number | no | Max results, 1–20 (default 8). |
+| `excludeVisited` | Boolean | no | true to leave out places the user already visited - use it for recommendations. |
 
 ### `get_user_progress`
 
 **Description**
 
 ```text
-The signed-in user's travel progress: totals of visited and wishlist places, explored percentage per
-county grouped by region, counties not started yet, the wishlist and visited places. Returns
-{ ok: false, error: "not_signed_in" } for guests. Takes no parameters.
+The signed-in user's travel progress: totals of visited and wishlist places, the least explored
+regions, explored percentage per region and per county, counties not started yet, the wishlist and
+visited places. Use it before recommending anything. Returns { ok: false, error: "not_signed_in" }
+for guests. Takes no parameters.
 ```
 
 No parameters.
@@ -154,3 +197,9 @@ Signed in, start a conversation and say for example:
 - „Što ima u Istri?” → `focus_county` / `highlight_places`
 - Click a city on the map, then ask „Što ima ovdje?” → the agent knows which city (`[map]` context)
 - „Dodaj Plitvice na listu želja.” → the agent asks first, then adds it
+- „Preporuči mi nešto.” → `get_user_progress`, then unvisited places in your emptiest region,
+  highlighted on the map
+- Or tap one of the suggestions in the panel - they're personalised from your progress
+
+During a session you can also type instead of speaking, in the browser console (dev only):
+`__voice.sendUserMessage("Vikend izlet blizu Osijeka")`

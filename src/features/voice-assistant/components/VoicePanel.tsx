@@ -4,6 +4,7 @@ import type { Ref } from "react";
 import Link from "next/link";
 import { AlertCircle, ChevronDown, Info, Loader2, Mic, MicOff, PhoneOff } from "lucide-react";
 import { AUTH_PATHS } from "@/lib/data";
+import { VOICE_PRIVACY_URL } from "@/features/voice-assistant/constants/config";
 import { VOICE_COPY, VOICE_ERROR_COPY } from "@/features/voice-assistant/constants/copy";
 import VoiceTranscript from "@/features/voice-assistant/components/VoiceTranscript";
 import type {
@@ -13,14 +14,17 @@ import type {
 } from "@/features/voice-assistant/types/types";
 
 interface VoicePanelProps {
+  panelRef?: Ref<HTMLElement>; // measured to keep the map's camera clear of the panel
   primaryActionRef?: Ref<HTMLButtonElement | HTMLAnchorElement>; // focused when the panel opens
   signedIn: boolean;
   phase: VoicePhase;
   error: VoiceErrorKind | null;
   sessionLimitReached: boolean;
   transcript: TranscriptEntry[];
+  starterPrompts: string[];
   isMuted: boolean;
   onStart: () => void;
+  onPrompt: (text: string) => void;
   onEnd: () => void;
   onToggleMute: () => void;
   onMinimize: () => void;
@@ -32,14 +36,17 @@ interface VoicePanelProps {
  * `sm` up (bottom-left, so it never covers the right-hand place panel the assistant opens)
  */
 export default function VoicePanel({
+  panelRef,
   primaryActionRef,
   signedIn,
   phase,
   error,
   sessionLimitReached,
   transcript,
+  starterPrompts,
   isMuted,
   onStart,
+  onPrompt,
   onEnd,
   onToggleMute,
   onMinimize,
@@ -47,9 +54,13 @@ export default function VoicePanel({
   const active = phase === "connecting" || phase === "listening" || phase === "speaking";
   const busy = phase === "requesting_mic" || phase === "connecting";
   const showIntro = !active && !transcript.length;
+  // Suggestions until the user has asked something themselves (spoken or picked)
+  const showStarters =
+    !error && phase !== "requesting_mic" && !transcript.some((entry) => entry.role === "user");
 
   return (
     <section
+      ref={panelRef}
       id="voice-panel"
       aria-labelledby="voice-panel-title"
       className="fixed z-1001 inset-x-0 bottom-0 flex max-h-[60vh] flex-col rounded-t-2xl border border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-sm sm:inset-x-auto sm:left-4 sm:bottom-33 sm:w-80 sm:max-h-[min(30rem,calc(100vh-11rem))] sm:rounded-xl motion-safe:animate-voice-panel-in"
@@ -84,9 +95,23 @@ export default function VoicePanel({
               <div className="space-y-2">
                 <p className="text-sm text-white/80">{VOICE_COPY.intro}</p>
                 <p className="text-xs text-white/45">{VOICE_COPY.micExplainer}</p>
+                <p className="text-xs text-white/45">
+                  {VOICE_COPY.privacyNote}{" "}
+                  <a
+                    href={VOICE_PRIVACY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-white/70 focus-visible:outline-2 focus-visible:outline-sky-400"
+                  >
+                    {VOICE_COPY.privacyLink}
+                  </a>
+                </p>
               </div>
             )}
             {(active || transcript.length > 0) && <VoiceTranscript entries={transcript} />}
+            {showStarters && starterPrompts.length > 0 && (
+              <StarterPrompts prompts={starterPrompts} disabled={busy} onPick={onPrompt} />
+            )}
             {error && (
               <p
                 role="alert"
@@ -156,6 +181,42 @@ export default function VoicePanel({
         )}
       </footer>
     </section>
+  );
+}
+
+/**
+ * Suggested questions as buttons. Picking one starts the conversation if needed and asks it - a typed
+ * turn, so the guide also works for anyone who'd rather not speak first
+ */
+function StarterPrompts({
+  prompts,
+  disabled,
+  onPick,
+}: {
+  prompts: string[];
+  disabled: boolean;
+  onPick: (text: string) => void;
+}) {
+  return (
+    <div>
+      <p id="voice-starters-label" className="mb-1.5 text-[10px] uppercase tracking-widest text-white/40">
+        {VOICE_COPY.starterLabel}
+      </p>
+      <ul aria-labelledby="voice-starters-label" className="flex flex-wrap gap-1.5">
+        {prompts.map((prompt) => (
+          <li key={prompt}>
+            <button
+              type="button"
+              onClick={() => onPick(prompt)}
+              disabled={disabled}
+              className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-left text-xs text-white/80 transition-colors hover:border-sky-400/50 hover:bg-sky-500/10 hover:text-white disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-sky-400"
+            >
+              {prompt}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

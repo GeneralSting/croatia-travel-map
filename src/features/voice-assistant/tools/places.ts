@@ -144,6 +144,7 @@ export interface SearchCriteria {
   region?: RegionId;
   category?: PoiType;
   near?: { lat: number; lng: number; excludeId: string; radiusKm: number };
+  excludeIds?: ReadonlySet<string>; // e.g. places the user already visited
   limit: number;
 }
 
@@ -159,6 +160,7 @@ export function searchPlaces(places: Place[], criteria: SearchCriteria) {
 
   const hits: (SearchHit & { score: number })[] = [];
   for (const place of places) {
+    if (criteria.excludeIds?.has(place.id)) continue;
     if (criteria.category && place.type !== criteria.category) continue;
     if (criteria.countyIds && !criteria.countyIds.includes(place.countyId)) continue;
     if (regionCounties && !regionCounties.includes(place.countyId)) continue;
