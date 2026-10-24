@@ -1,33 +1,87 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
-import { Form, PasswordField, SubmitButton, FormError } from "@/components/form";
+import {
+  FormBuilder,
+  PasswordField,
+  SubmitButton,
+  FormError,
+} from "@/components/form";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   resetPasswordSchema,
   type ResetPasswordValues,
 } from "@/features/auth-portal/schemas";
+import { AuthNotice } from "./AuthNotice";
 import { NotConfiguredNotice } from "./NotConfiguredNotice";
+import { APP_PATHS, AUTH_PATHS } from "@/lib/data";
+import { AuthFormSkeletonInline } from "./Skeletons";
+
+/**
+ * checking - while we confirm a recovery session exists
+ * ready - once it does
+ * invalid - when the page was opened directly (no session)
+ */
+type SessionState = "checking" | "ready" | "invalid";
 
 export function ResetPasswordForm() {
   const router = useRouter();
+  const [sessionState, setSessionState] = useState<SessionState>("checking");
 
   const onSubmit = async (values: ResetPasswordValues) => {
-    // The recovery link already established a session via /auth/callback, so we can update the
-    // password directly.
+    // The recovery link already established a session via /auth/callback, so we can update the password directly
     const { error } = await createClient().auth.updateUser({
       password: values.password,
     });
     if (error) throw new Error(error.message);
-    router.push("/");
+    router.push(APP_PATHS.HOME);
     router.refresh();
   };
 
+  // A valid recovery session is only established by clicking the emailed link (passes through /auth/callback -> exchangeCodeForSession)
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    const supabase = createClient();
+    let active = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setSessionState(data.session ? "ready" : "invalid");
+    });
+
+    // The recovery session can also land just after mount; upgrade to `ready` if it does.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active && session) setSessionState("ready");
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
   if (!isSupabaseConfigured) return <NotConfiguredNotice />;
+  if (sessionState === "checking") return <AuthFormSkeletonInline fields={2} />;
+  if (sessionState === "invalid")
+    return (
+      <AuthNotice
+        variant="error"
+        href={AUTH_PATHS.FORGOT_PASSWORD}
+        linkText="Request a new reset link"
+      >
+        This password reset link is invalid or has expired. Reset links can only
+        be opened once, and expire after a short time — request a fresh one to
+        continue.
+      </AuthNotice>
+    );
 
   return (
-    <Form schema={resetPasswordSchema} onSubmit={onSubmit} className="space-y-4">
+    <FormBuilder
+      schema={resetPasswordSchema}
+      onSubmit={onSubmit}
+      className="space-y-4"
+    >
       <PasswordField
         name="password"
         label="New password"
@@ -42,6 +96,6 @@ export function ResetPasswordForm() {
       />
       <FormError />
       <SubmitButton>Update password</SubmitButton>
-    </Form>
+    </FormBuilder>
   );
 }

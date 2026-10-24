@@ -4,12 +4,12 @@ import { createContext, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
-export type AuthState = {
+export interface AuthState {
   user: User | null;
   loading: boolean;
   configured: boolean; // whether Supabase env is set up at all (gates auth UI)
   signOut: () => Promise<void>;
-};
+}
 
 export const AuthContext = createContext<AuthState>({
   user: null,

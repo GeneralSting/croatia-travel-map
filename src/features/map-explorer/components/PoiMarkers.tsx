@@ -1,19 +1,17 @@
 "use client";
 
-// Points of interest drawn on the map: the seed POIs that have coordinates (from poiCoords.ts)
-// plus the signed-in user's own added places. Each shows its type emoji in a coloured pin, is
-// revealed by zoom (so a zoomed-out map stays clean), and opens that POI's detail on click.
+// Points of interest drawn on the map: the shared default POIs that have coordinates plus the
+// signed-in user's own added places (both come from the unified `pois` table via useMapData). Each
+// shows its type emoji in a coloured pin, is revealed by zoom, and opens that POI's detail on click.
 
 import { useMemo, useState } from "react";
 import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import {
-  POI_TYPES,
-  mappablePois,
-  mountainPois,
-  type PoiType,
-  type UserPoi,
-} from "@/features/map-explorer/data";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
+import { useMapControl } from "@/features/map-explorer/hooks/useMapControl";
+import { PoiType } from "../types/types";
+import { POI_TYPE_STYLE } from "../constants/const";
+import { isCustomPoi } from "../utils/helpers";
 
 // Zoom at which each type's pins appear. Mountains show early (they're sparse landmarks);
 // campsites are dense, so they come in a touch later.
@@ -27,16 +25,21 @@ function minZoomFor(type: PoiType): number {
   return TYPE_MIN_ZOOM[type] ?? POI_MIN_ZOOM;
 }
 
-// One divIcon per (type, selected) combination — cheap to cache and reuse across markers.
+// One divIcon per (type, selected, highlighted) combination — cheap to cache and reuse across markers.
 const iconCache = new Map<string, L.DivIcon>();
-function poiIcon(type: PoiType, selected: boolean): L.DivIcon {
-  const key = `${type}:${selected}`;
+function poiIcon(
+  type: PoiType,
+  selected: boolean,
+  highlighted: boolean,
+): L.DivIcon {
+  const key = `${type}:${selected}:${highlighted}`;
   let icon = iconCache.get(key);
   if (!icon) {
-    const { icon: emoji, color } = POI_TYPES[type];
+    const { icon: emoji, color } = POI_TYPE_STYLE[type];
+    const modifiers = `${selected ? " cx-poi-pin--sel" : ""}${highlighted ? " cx-poi-pin--hl" : ""}`;
     icon = L.divIcon({
       className: "cx-poi-icon",
-      html: `<span class="cx-poi-pin${selected ? " cx-poi-pin--sel" : ""}" style="--poi:${color}">${emoji}</span>`,
+      html: `<span class="cx-poi-pin${modifiers}" style="--poi:${color}">${emoji}</span>`,
       iconSize: [26, 26],
       iconAnchor: [13, 13],
     });
@@ -51,60 +54,76 @@ interface MarkerDatum {
   type: PoiType;
   lat: number;
   lng: number;
+  isCustom: boolean;
 }
 
 interface PoiMarkersProps {
-  userPois: UserPoi[];
   onPoiClick: (poiId: string) => void;
   selectedPoi: string | null;
   /** When true, every pin shows its name permanently; otherwise only on hover. */
   showNames: boolean;
-  /** Which POI types are currently shown. */
+  /** Which default POI types are currently shown. */
   enabledTypes: Record<PoiType, boolean>;
+  /** When true, the user's custom POIs are shown regardless of their type filter. */
+  showCustom: boolean;
 }
 
 export default function PoiMarkers({
-  userPois,
   onPoiClick,
   selectedPoi,
   showNames,
   enabledTypes,
+  showCustom,
 }: PoiMarkersProps) {
+  const { mappablePois } = useMapData();
+  const highlightedIds = useMapControl((state) => state.highlightedIds);
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
 
-  const markers = useMemo<MarkerDatum[]>(() => {
-    const seed = [...mappablePois(), ...mountainPois()].map((p) => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      lat: p.lat as number,
-      lng: p.lng as number,
-    }));
-    const user = userPois.map((p) => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      lat: p.lat,
-      lng: p.lng,
-    }));
-    return [...seed, ...user];
-  }, [userPois]);
-
-  const visible = markers.filter(
-    (m) => enabledTypes[m.type] && zoom >= minZoomFor(m.type),
+  const markers = useMemo<MarkerDatum[]>(
+    () =>
+      mappablePois().map((poi) => ({
+        id: poi.id,
+        name: poi.name,
+        type: poi.type,
+        lat: poi.lat as number,
+        lng: poi.lng as number,
+        isCustom: isCustomPoi(poi),
+      })),
+    [mappablePois],
   );
+
+  // Custom POIs follow the "My places" toggle; defaults follow their type toggle. Zoom reveal
+  // applies to both so a zoomed-out map stays clean. Highlighted pins (e.g. search results) are
+  // always shown — a highlight the user can't see would be pointless
+  const visible = markers.filter((marker) => {
+    if (highlightedIds.has(marker.id)) return true;
+    const originVisible = marker.isCustom
+      ? showCustom
+      : enabledTypes[marker.type];
+    return originVisible && zoom >= minZoomFor(marker.type);
+  });
 
   return (
     <>
-      {visible.map((m) => (
+      {visible.map((marker) => (
         <Marker
-          key={m.id}
-          position={[m.lat, m.lng]}
-          icon={poiIcon(m.type, selectedPoi === m.id)}
-          zIndexOffset={selectedPoi === m.id ? 1000 : 0}
-          eventHandlers={{ click: () => onPoiClick(m.id) }}
+          key={marker.id}
+          position={[marker.lat, marker.lng]}
+          icon={poiIcon(
+            marker.type,
+            selectedPoi === marker.id,
+            highlightedIds.has(marker.id),
+          )}
+          zIndexOffset={
+            selectedPoi === marker.id
+              ? 1000
+              : highlightedIds.has(marker.id)
+                ? 500
+                : 0
+          }
+          eventHandlers={{ click: () => onPoiClick(marker.id) }}
         >
           {/* key forces Leaflet to rebind when the permanent/hover mode changes */}
           <Tooltip
@@ -114,7 +133,7 @@ export default function PoiMarkers({
             offset={[14, 0]}
             className="cx-place-label"
           >
-            {m.name}
+            {marker.name}
           </Tooltip>
         </Marker>
       ))}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
 import {
-  Form,
+  FormBuilder,
   TextField,
   PasswordField,
   SubmitButton,
@@ -19,6 +19,7 @@ import { GoogleButton } from "./GoogleButton";
 import { OrDivider } from "./OrDivider";
 import { AuthNotice } from "./AuthNotice";
 import { NotConfiguredNotice } from "./NotConfiguredNotice";
+import { APP_PATHS, AUTH_PATHS } from "@/lib/data";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -29,11 +30,11 @@ export function RegisterForm() {
     const { data, error } = await createClient().auth.signUp({
       email: values.email,
       password: values.password,
-      options: { emailRedirectTo: `${redirectBase}/auth/callback` },
+      options: { emailRedirectTo: `${redirectBase}${AUTH_PATHS.CALLBACK}` },
     });
     if (error) throw new Error(error.message);
     if (data.session) {
-      router.push("/");
+      router.push(APP_PATHS.HOME);
       router.refresh();
     } else {
       // Email confirmation required — no session yet.
@@ -53,7 +54,11 @@ export function RegisterForm() {
     <div className="space-y-5">
       <GoogleButton />
       <OrDivider />
-      <Form schema={registerSchema} onSubmit={onSubmit} className="space-y-4">
+      <FormBuilder
+        schema={registerSchema}
+        onSubmit={onSubmit}
+        className="space-y-4"
+      >
         <TextField
           name="email"
           label="Email"
@@ -70,7 +75,7 @@ export function RegisterForm() {
         />
         <FormError />
         <SubmitButton>Create account</SubmitButton>
-      </Form>
+      </FormBuilder>
     </div>
   );
 }

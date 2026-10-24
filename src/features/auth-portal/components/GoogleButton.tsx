@@ -1,17 +1,16 @@
 "use client";
 
-// Google OAuth button. Kicks off Supabase's OAuth flow, which returns to /auth/callback to
-// exchange the code for a session.
-
 import { createClient } from "@/lib/supabase/client";
+import { AUTH_PATHS } from "@/lib/data";
 
+// Google OAuth button - supabase's OAuth flow, which returns to 'auth/callback' to exchange the code for a session
 export function GoogleButton() {
   const handleGoogle = async () => {
     const redirectBase =
       typeof window !== "undefined" ? window.location.origin : "";
     await createClient().auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${redirectBase}/auth/callback` },
+      options: { redirectTo: `${redirectBase}${AUTH_PATHS.CALLBACK}` },
     });
   };
 
@@ -19,7 +18,7 @@ export function GoogleButton() {
     <button
       type="button"
       onClick={handleGoogle}
-      className="flex w-full items-center justify-center gap-2 rounded-lg bg-white py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-white/90"
+      className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-lg bg-white h-11 text-sm font-medium text-slate-900 transition-colors hover:bg-white/90"
     >
       <GoogleGlyph />
       Continue with Google

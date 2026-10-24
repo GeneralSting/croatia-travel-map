@@ -1,5 +1,4 @@
-// Small "or" divider between the OAuth button and the email/password fields.
-
+// Small "or" divider between the OAuth button and the email/password fields
 export function OrDivider() {
   return (
     <div className="flex items-center gap-3">

@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  COUNTIES,
-  POIS,
-  getGradientColor,
-  type POIDataMap,
-} from "@/features/map-explorer/data";
+import type { POIDataMap } from "@/features/map-explorer/types/types";
+import { getGradientColor } from "@/features/map-explorer/utils/selectors";
+import { useMapData } from "@/features/map-explorer/hooks/useMapData";
 import { ChevronUp, ChevronDown, Map } from "lucide-react";
 
 interface SummaryDrawerProps {
@@ -20,32 +17,36 @@ export default function SummaryDrawer({
   countyPercents,
   onCountySelect,
 }: SummaryDrawerProps) {
+  const { counties, pois } = useMapData();
+  // Global stats count the shared default POIs only (custom POIs are personal extras).
+  const defaultPois = pois.filter((poi) => poi.owner_id == null);
   const [open, setOpen] = useState(false);
 
-  const totalPois = POIS.length;
-  const visitedPois = POIS.filter(
-    (p) => poiDataMap[p.id]?.status === "visited",
+  const totalPois = defaultPois.length;
+  const visitedPois = defaultPois.filter(
+    (poi) => poiDataMap[poi.id]?.status === "visited",
   ).length;
-  const wantPois = POIS.filter(
-    (p) => poiDataMap[p.id]?.status === "want_to_visit",
+  const wantPois = defaultPois.filter(
+    (poi) => poiDataMap[poi.id]?.status === "want_to_visit",
   ).length;
   const percentExplored =
     totalPois > 0 ? Math.round((visitedPois / totalPois) * 100) : 0;
-  const countiesStarted = COUNTIES.filter(
-    (c) => (countyPercents[c.id] ?? 0) > 0,
+  const countiesStarted = counties.filter(
+    (county) => (countyPercents[county.id] ?? 0) > 0,
   ).length;
-  const countiesCompleted = COUNTIES.filter(
-    (c) => (countyPercents[c.id] ?? 0) >= 100,
+  const countiesCompleted = counties.filter(
+    (county) => (countyPercents[county.id] ?? 0) >= 100,
   ).length;
 
-  const sortedCounties = [...COUNTIES]
-    .map((c) => ({ ...c, percent: countyPercents[c.id] ?? 0 }))
-    .sort((a, b) => b.percent - a.percent);
+  const sortedCounties = [...counties]
+    .map((county) => ({ ...county, percent: countyPercents[county.id] ?? 0 }))
+    .sort((countyA, countyB) => countyB.percent - countyA.percent);
 
-  const wantCounties = COUNTIES.filter((c) =>
-    POIS.some(
-      (p) =>
-        p.county_id === c.id && poiDataMap[p.id]?.status === "want_to_visit",
+  const wantCounties = counties.filter((county) =>
+    defaultPois.some(
+      (poi) =>
+        poi.county_id === county.id &&
+        poiDataMap[poi.id]?.status === "want_to_visit",
     ),
   );
 
@@ -72,7 +73,9 @@ export default function SummaryDrawer({
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:inline">{wantPois} planned</span>
             <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:inline">{countiesStarted} counties started</span>
+            <span className="hidden sm:inline">
+              {countiesStarted} counties started
+            </span>
           </div>
         </div>
         {open ? (
@@ -109,16 +112,19 @@ export default function SummaryDrawer({
                     value: countiesCompleted,
                     color: "#15803D",
                   },
-                ].map((s) => (
-                  <div key={s.label} className="bg-slate-800/50 rounded-xl p-3">
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="bg-slate-800/50 rounded-xl p-3"
+                  >
                     <div
                       className="text-2xl font-bold"
-                      style={{ color: s.color }}
+                      style={{ color: stat.color }}
                     >
-                      {s.value}
+                      {stat.value}
                     </div>
                     <div className="text-[10px] text-white/40 mt-0.5">
-                      {s.label}
+                      {stat.label}
                     </div>
                   </div>
                 ))}
@@ -131,34 +137,36 @@ export default function SummaryDrawer({
                 County Leaderboard
               </h3>
               <div className="space-y-2">
-                {sortedCounties.slice(0, 8).map((c) => (
+                {sortedCounties.slice(0, 8).map((county) => (
                   <div
-                    key={c.id}
+                    key={county.id}
                     className="flex items-center gap-3 cursor-pointer hover:bg-white/5 rounded-lg px-2 py-1 -mx-2 transition-colors"
                     onClick={() => {
-                      onCountySelect(c.id);
+                      onCountySelect(county.id);
                       setOpen(false);
                     }}
                   >
                     <div
                       className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: getGradientColor(c.percent) }}
+                      style={{
+                        backgroundColor: getGradientColor(county.percent),
+                      }}
                     />
                     <span className="text-xs text-white/70 flex-1 truncate">
-                      {c.name}
+                      {county.name}
                     </span>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
-                            width: `${c.percent}%`,
-                            backgroundColor: getGradientColor(c.percent),
+                            width: `${county.percent}%`,
+                            backgroundColor: getGradientColor(county.percent),
                           }}
                         />
                       </div>
                       <span className="text-xs text-white/40 w-8 text-right">
-                        {c.percent}%
+                        {county.percent}%
                       </span>
                     </div>
                   </div>
@@ -177,24 +185,24 @@ export default function SummaryDrawer({
                 </p>
               ) : (
                 <div className="space-y-1.5">
-                  {wantCounties.map((c) => {
-                    const wantInCounty = POIS.filter(
-                      (p) =>
-                        p.county_id === c.id &&
-                        poiDataMap[p.id]?.status === "want_to_visit",
+                  {wantCounties.map((county) => {
+                    const wantInCounty = defaultPois.filter(
+                      (poi) =>
+                        poi.county_id === county.id &&
+                        poiDataMap[poi.id]?.status === "want_to_visit",
                     );
                     return (
                       <div
-                        key={c.id}
+                        key={county.id}
                         className="cursor-pointer hover:bg-white/5 rounded-lg px-2 py-1.5 -mx-2 transition-colors"
                         onClick={() => {
-                          onCountySelect(c.id);
+                          onCountySelect(county.id);
                           setOpen(false);
                         }}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-white/70 font-medium">
-                            {c.name}
+                            {county.name}
                           </span>
                           <span className="text-[10px] text-blue-400">
                             {wantInCounty.length} planned
@@ -203,7 +211,7 @@ export default function SummaryDrawer({
                         <div className="text-[10px] text-white/30 mt-0.5 truncate">
                           {wantInCounty
                             .slice(0, 2)
-                            .map((p) => p.name)
+                            .map((poi) => poi.name)
                             .join(", ")}
                           {wantInCounty.length > 2
                             ? ` +${wantInCounty.length - 2} more`

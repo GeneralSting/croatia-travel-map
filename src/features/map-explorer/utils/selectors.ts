@@ -1,102 +1,85 @@
-// Pure read helpers ("selectors") over the static map data — deriving map pins, lookups, and
-// the "percent explored" / fill-colour used across the feature. No side effects.
+// Pure, data-independent helpers over map data. The lookups that need the fetched reference data
+// (getPoi, getCity, mappablePois, …) now live in MapDataProvider; what remains here is pure math
+// and formatting that takes its inputs as arguments.
 
-import {
-  CITIES,
-  MOUNTAINS,
-  POIS,
-  POI_CITY_ID,
-} from "@/features/map-explorer/data/croatiaData";
-import type { City, POI, POIDataMap } from "@/features/map-explorer/types";
+import type {
+  City,
+  County,
+  CountyDataMap,
+  POI,
+  POIDataMap,
+} from "@/features/map-explorer/types/types";
 
-/**
- * Seed POIs drawn on the map: those that have coordinates AND are not tied to a city. A POI
- * that belongs to a city (Diocletian's Palace, the Sea Organ…) shows only inside that city's
- * drawer — the map is for distinct destinations (campsites, parks, rivers, islands…).
- */
-export function mappablePois(): POI[] {
-  return POIS.filter(
-    (p) =>
-      typeof p.lat === "number" &&
-      typeof p.lng === "number" &&
-      !POI_CITY_ID[p.id],
+// ── Views over the fetched POIs/cities (pure — take the data, return a slice) ───────────────────
+
+function hasCoords(poi: POI): poi is POI & { lat: number; lng: number } {
+  return typeof poi.lat === "number" && typeof poi.lng === "number";
+}
+
+/** POIs drawn as pins: have coordinates and aren't attached to a city (defaults + custom). */
+export function mappablePois(pois: POI[]): POI[] {
+  return pois.filter((poi) => hasCoords(poi) && poi.city_id == null);
+}
+
+/** A city's "places to visit" list. */
+export function poisForCity(pois: POI[], cityId: string): POI[] {
+  return pois.filter((poi) => poi.city_id === cityId);
+}
+
+/** Default (non-custom) county POIs not tied to a city — the county panel's own list. */
+export function looseCountyPois(defaultPois: POI[], countyId: string): POI[] {
+  return defaultPois.filter(
+    (poi) => poi.county_id === countyId && poi.city_id == null,
   );
 }
 
-const poiById = Object.fromEntries(POIS.map((p) => [p.id, p]));
-
-/** Look up a single seed POI by id. */
-export function getPoi(poiId: string): POI | undefined {
-  return poiById[poiId];
+/** The user's own custom POIs within a county (the county panel's "My Places"). */
+export function customPoisForCounty(pois: POI[], countyId: string): POI[] {
+  return pois.filter(
+    (poi) => poi.owner_id != null && poi.county_id === countyId,
+  );
 }
 
-/** Mountain peaks expressed as POIs (they already carry real coordinates). */
-export function mountainPois(): POI[] {
-  return MOUNTAINS.map((m) => ({
-    id: m.id,
-    county_id: m.county_id,
-    name: m.name,
-    type: "mountain" as const,
-    description: "",
-    lat: m.lat,
-    lng: m.lng,
-  }));
+/** All default POIs in a county — the basis for the county's explored %. */
+export function countyDefaultPois(defaultPois: POI[], countyId: string): POI[] {
+  return defaultPois.filter((poi) => poi.county_id === countyId);
 }
 
-const mountainById = Object.fromEntries(mountainPois().map((p) => [p.id, p]));
-
-/** Look up a single mountain (as a POI) by id. */
-export function getMountainPoi(poiId: string): POI | undefined {
-  return mountainById[poiId];
+/** Cities inside a county, major first. */
+export function citiesForCounty(cities: City[], countyId: string): City[] {
+  return cities
+    .filter((city) => city.county_id === countyId)
+    .sort((a, b) => a.importance - b.importance);
 }
 
-export function getVisitedPercent(
-  countyId: string,
-  poiDataMap: POIDataMap,
-): number {
-  const countyPois = POIS.filter((p) => p.county_id === countyId);
-  if (countyPois.length === 0) return 0;
-  const visited = countyPois.filter(
-    (p) => poiDataMap[p.id]?.status === "visited",
+/** Explored percentage for a set of POIs, from how many are marked "visited". */
+export function percentVisited(pois: POI[], poiDataMap: POIDataMap): number {
+  if (pois.length === 0) return 0;
+  const visited = pois.filter(
+    (poi) => poiDataMap[poi.id]?.status === "visited",
   ).length;
-  return Math.round((visited / countyPois.length) * 100);
+  return Math.round((visited / pois.length) * 100);
 }
 
-export function getGradientColor(percent: number): string {
-  if (percent === 0) return "#334155";
-  if (percent <= 25) {
-    const t = percent / 25;
-    return interpolateColor("#334155", "#1D4ED8", t);
+/**
+ * Each county's explored percentage: the user's manual override when set, otherwise computed from its
+ * visited default POIs. Shared by the map colouring and the voice assistant, so both report the same
+ */
+export function computeCountyPercents(
+  counties: County[],
+  poiDataMap: POIDataMap,
+  countyDataMap: CountyDataMap,
+  getVisitedPercent: (countyId: string, poiDataMap: POIDataMap) => number,
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const county of counties) {
+    const record = countyDataMap[county.id];
+    result[county.id] =
+      record?.is_manual_override && record.visited_percent != null
+        ? record.visited_percent
+        : getVisitedPercent(county.id, poiDataMap);
   }
-  if (percent <= 50) {
-    const t = (percent - 25) / 25;
-    return interpolateColor("#1D4ED8", "#D97706", t);
-  }
-  if (percent <= 75) {
-    const t = (percent - 50) / 25;
-    return interpolateColor("#D97706", "#16A34A", t);
-  }
-  const t = (percent - 75) / 25;
-  return interpolateColor("#16A34A", "#15803D", t);
-}
-
-function interpolateColor(hex1: string, hex2: string, t: number): string {
-  const r1 = parseInt(hex1.slice(1, 3), 16);
-  const g1 = parseInt(hex1.slice(3, 5), 16);
-  const b1 = parseInt(hex1.slice(5, 7), 16);
-  const r2 = parseInt(hex2.slice(1, 3), 16);
-  const g2 = parseInt(hex2.slice(3, 5), 16);
-  const b2 = parseInt(hex2.slice(5, 7), 16);
-  const r = Math.round(r1 + (r2 - r1) * t);
-  const g = Math.round(g1 + (g2 - g1) * t);
-  const b = Math.round(b1 + (b2 - b1) * t);
-  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-}
-
-const cityById = Object.fromEntries(CITIES.map((c) => [c.id, c]));
-
-export function getCity(cityId: string): City | undefined {
-  return cityById[cityId];
+  return result;
 }
 
 /** Cover image path for a city, falling back to the `/cities/<id>.jpg` convention. */
@@ -104,27 +87,37 @@ export function cityCover(city: City): string {
   return city.coverImage ?? `/cities/${city.id}.jpg`;
 }
 
-/** Cities inside a county, ordered by importance (major first). */
-export function citiesForCounty(countyId: string): City[] {
-  return CITIES.filter((c) => c.county_id === countyId).sort(
-    (a, b) => a.importance - b.importance,
-  );
+export function getGradientColor(percent: number): string {
+  if (percent === 0) return "#334155";
+  if (percent <= 25) {
+    const ratio = percent / 25;
+    return interpolateColor("#334155", "#1D4ED8", ratio);
+  }
+  if (percent <= 50) {
+    const ratio = (percent - 25) / 25;
+    return interpolateColor("#1D4ED8", "#D97706", ratio);
+  }
+  if (percent <= 75) {
+    const ratio = (percent - 50) / 25;
+    return interpolateColor("#D97706", "#16A34A", ratio);
+  }
+  const ratio = (percent - 75) / 25;
+  return interpolateColor("#16A34A", "#15803D", ratio);
 }
 
-/** The POIs that make up a city's "places to visit" list. */
-export function poisForCity(cityId: string): POI[] {
-  return POIS.filter((p) => POI_CITY_ID[p.id] === cityId);
-}
-
-/** County POIs that are NOT tied to a city (shown directly in the county panel). */
-export function looseCountyPois(countyId: string): POI[] {
-  return POIS.filter((p) => p.county_id === countyId && !POI_CITY_ID[p.id]);
-}
-
-/** A city's own explored percentage, from the status of its places to visit. */
-export function getCityPercent(cityId: string, poiDataMap: POIDataMap): number {
-  const pois = poisForCity(cityId);
-  if (pois.length === 0) return 0;
-  const visited = pois.filter((p) => poiDataMap[p.id]?.status === "visited").length;
-  return Math.round((visited / pois.length) * 100);
+function interpolateColor(
+  fromHex: string,
+  toHex: string,
+  ratio: number,
+): string {
+  const fromRed = parseInt(fromHex.slice(1, 3), 16);
+  const fromGreen = parseInt(fromHex.slice(3, 5), 16);
+  const fromBlue = parseInt(fromHex.slice(5, 7), 16);
+  const toRed = parseInt(toHex.slice(1, 3), 16);
+  const toGreen = parseInt(toHex.slice(3, 5), 16);
+  const toBlue = parseInt(toHex.slice(5, 7), 16);
+  const red = Math.round(fromRed + (toRed - fromRed) * ratio);
+  const green = Math.round(fromGreen + (toGreen - fromGreen) * ratio);
+  const blue = Math.round(fromBlue + (toBlue - fromBlue) * ratio);
+  return `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
 }

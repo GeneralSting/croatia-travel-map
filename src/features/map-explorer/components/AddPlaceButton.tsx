@@ -10,6 +10,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/features/auth-portal";
+import { AUTH_PATHS } from "@/lib/data";
 
 interface AddPlaceButtonProps {
   active: boolean;
@@ -46,7 +47,7 @@ export default function AddPlaceButton({ active, onToggle }: AddPlaceButtonProps
 
   if (loginRequired) {
     return (
-      <Link href="/login" className={`${base} ${tone}`} aria-label={label} {...hoverProps}>
+      <Link href={AUTH_PATHS.LOGIN} className={`${base} ${tone}`} aria-label={label} {...hoverProps}>
         <Plus className="h-5 w-5" />
         {tip}
       </Link>

@@ -1,4 +1,6 @@
 allowBuilds:
+  esbuild: true
+  msw: false # browser service worker only; integration tests run MSW in Node, so its build is unused
   sharp: true
   unrs-resolver: true
 minimumReleaseAgeExclude:

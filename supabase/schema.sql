@@ -1,5 +1,6 @@
--- Croatia Explorer — database schema for per-user travel progress.
+-- Croatia Explorer — database schema.
 -- Run once in the Supabase SQL editor: Dashboard → SQL Editor → New query → paste → Run.
+-- Then run supabase/seed.sql to load the reference data (poi_types, counties, cities, default POIs).
 -- Safe to re-run (uses IF NOT EXISTS / OR REPLACE / DROP … IF EXISTS).
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -42,8 +43,98 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 2) POI progress — a user's status / rating / notes per point of interest.
---    poi_id is our string id (e.g. "diocletian-palace").
+-- 2) Reference data — the canonical map data, shared by everyone (public read).
+--    Seeded from supabase/seed.sql. Only the service role / SQL editor may write
+--    (no insert/update/delete policies), so these are read-only to the app.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- POI types (canonical values + labels). The frontend owns icon/color presentation.
+create table if not exists public.poi_types (
+  id         text primary key,
+  label      text not null,
+  sort_order smallint not null default 0
+);
+
+alter table public.poi_types enable row level security;
+drop policy if exists "poi_types_read_all" on public.poi_types;
+create policy "poi_types_read_all" on public.poi_types
+  for select using (true);
+
+-- Counties (metadata only; polygon geometry stays in public/geo/*.geojson).
+create table if not exists public.counties (
+  id   text primary key,
+  name text not null
+);
+
+alter table public.counties enable row level security;
+drop policy if exists "counties_read_all" on public.counties;
+create policy "counties_read_all" on public.counties
+  for select using (true);
+
+-- Cities (clickable, zoom-revealed places with their own detail drawer).
+create table if not exists public.cities (
+  id          text primary key,
+  county_id   text not null references public.counties(id) on delete cascade,
+  name        text not null,
+  lat         double precision not null,
+  lng         double precision not null,
+  importance  smallint not null default 3 check (importance between 1 and 3),
+  description text,
+  cover_image text
+);
+
+alter table public.cities enable row level security;
+drop policy if exists "cities_read_all" on public.cities;
+create policy "cities_read_all" on public.cities
+  for select using (true);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 3) POIs — unified table for BOTH the shared default POIs and each user's custom
+--    ones. owner_id IS NULL → a default POI (everyone sees it); owner_id = <user>
+--    → a private custom POI. RLS enforces the split.
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists public.pois (
+  id          text primary key,
+  owner_id    uuid references auth.users(id) on delete cascade, -- NULL = shared default
+  county_id   text not null references public.counties(id) on delete cascade,
+  city_id     text references public.cities(id) on delete set null,
+  name        text not null,
+  type        text not null references public.poi_types(id),
+  description text,
+  -- Nullable: a default POI attached to a city can be a list-only entry with no map position.
+  -- Custom POIs always carry coordinates (the user drops the pin). Mapped POIs are those with both.
+  lat         double precision,
+  lng         double precision,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists pois_owner_id_idx on public.pois (owner_id);
+create index if not exists pois_county_id_idx on public.pois (county_id);
+create index if not exists pois_city_id_idx on public.pois (city_id);
+
+alter table public.pois enable row level security;
+
+-- Read: shared defaults for everyone + your own custom POIs.
+drop policy if exists "pois_select_visible" on public.pois;
+create policy "pois_select_visible" on public.pois
+  for select using (owner_id is null or auth.uid() = owner_id);
+
+-- Write: only your own custom POIs (owner_id must equal you — blocks creating defaults).
+drop policy if exists "pois_insert_own" on public.pois;
+create policy "pois_insert_own" on public.pois
+  for insert with check (auth.uid() = owner_id);
+
+drop policy if exists "pois_update_own" on public.pois;
+create policy "pois_update_own" on public.pois
+  for update using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
+drop policy if exists "pois_delete_own" on public.pois;
+create policy "pois_delete_own" on public.pois
+  for delete using (auth.uid() = owner_id);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 4) POI progress — a user's status / rating / notes per POI (default or custom).
+--    poi_id references pois(id) — the two id namespaces are unified there.
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists public.poi_progress (
   user_id      uuid not null references auth.users(id) on delete cascade,
@@ -56,6 +147,16 @@ create table if not exists public.poi_progress (
   updated_at   timestamptz not null default now(),
   primary key (user_id, poi_id)
 );
+
+-- Add the FK to pois idempotently (constraints don't support IF NOT EXISTS directly).
+-- NOT VALID: pois is still empty when schema.sql runs (seed.sql runs after), and there may be
+-- leftover poi_progress rows from an earlier setup. NOT VALID applies the constraint without
+-- checking existing rows, while still enforcing every new insert/update. seed.sql cleans any
+-- orphans and runs VALIDATE CONSTRAINT once pois is populated.
+alter table public.poi_progress drop constraint if exists poi_progress_poi_id_fkey;
+alter table public.poi_progress
+  add constraint poi_progress_poi_id_fkey
+  foreign key (poi_id) references public.pois(id) on delete cascade not valid;
 
 alter table public.poi_progress enable row level security;
 
@@ -76,7 +177,7 @@ create policy "poi_progress_delete_own" on public.poi_progress
   for delete using (auth.uid() = user_id);
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 3) County overrides — a user's manual explored-% override per county.
+-- 5) County overrides — a user's manual explored-% override per county.
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists public.county_overrides (
   user_id         uuid not null references auth.users(id) on delete cascade,
@@ -106,39 +207,6 @@ create policy "county_overrides_delete_own" on public.county_overrides
   for delete using (auth.uid() = user_id);
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 4) User POIs — places a user adds themselves (private to them). These show as
---    extra pins on the map and can be tracked via poi_progress just like seed POIs.
+-- 6) Retire the old per-user table — custom POIs now live in public.pois.
 -- ─────────────────────────────────────────────────────────────────────────────
-create table if not exists public.user_pois (
-  id          uuid primary key,
-  user_id     uuid not null references auth.users(id) on delete cascade,
-  county_id   text not null,
-  name        text not null,
-  type        text not null
-              check (type in ('city','mountain','lake','river','national_park',
-                              'nature','island','campsite','landmark')),
-  description text,
-  lat         double precision not null,
-  lng         double precision not null,
-  created_at  timestamptz not null default now()
-);
-
-create index if not exists user_pois_user_id_idx on public.user_pois (user_id);
-
-alter table public.user_pois enable row level security;
-
-drop policy if exists "user_pois_select_own" on public.user_pois;
-create policy "user_pois_select_own" on public.user_pois
-  for select using (auth.uid() = user_id);
-
-drop policy if exists "user_pois_insert_own" on public.user_pois;
-create policy "user_pois_insert_own" on public.user_pois
-  for insert with check (auth.uid() = user_id);
-
-drop policy if exists "user_pois_update_own" on public.user_pois;
-create policy "user_pois_update_own" on public.user_pois
-  for update using (auth.uid() = user_id);
-
-drop policy if exists "user_pois_delete_own" on public.user_pois;
-create policy "user_pois_delete_own" on public.user_pois
-  for delete using (auth.uid() = user_id);
+drop table if exists public.user_pois;

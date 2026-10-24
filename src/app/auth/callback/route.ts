@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { APP_PATHS, AUTH_PATHS } from "@/lib/data";
 
 /**
  * OAuth (Google) and email-confirmation links land here with a `code`, which we exchange
@@ -8,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code"); // grabs that temporary authorization code sent by Supabase
-  const next = searchParams.get("next") ?? "/"; // determines where to send the user after they successfully log in
+  const next = searchParams.get("next") ?? APP_PATHS.HOME; // determines where to send the user after they successfully log in
 
   if (code) {
     const supabase = await createClient();
@@ -22,5 +23,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`);
+  return NextResponse.redirect(`${origin}${AUTH_PATHS.LOGIN}?error=auth`);
 }
